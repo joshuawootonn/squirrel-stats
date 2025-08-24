@@ -4,4 +4,5 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("pv", views.track_pageview, name="track_pageview"),
 ]

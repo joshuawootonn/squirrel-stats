@@ -20,4 +20,7 @@ pyflakes==2.4.0
 PyYAML==6.0.2
 sqlparse==0.5.3
 tomli==2.2.1
+ua-parser==1.0.1
+ua-parser-builtins==0.18.0.post1
+user-agents==2.2.0
 virtualenv==20.34.0
