@@ -7,14 +7,34 @@ import logging
 from django.conf import settings
 from rest_framework import authentication, exceptions
 
-from .clerk import sync_user_from_clerk
-
 logger = logging.getLogger(__name__)
+
+
+class ClerkUser:
+    """
+    Simple user object that holds user ID from Clerk.
+    Provides compatibility with DRF's authentication system.
+    """
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.id = user_id  # For compatibility
+        self.pk = user_id  # For DRF throttling compatibility
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
 
 
 class ClerkAuthentication(authentication.BaseAuthentication):
     """
     Simple authentication class for Clerk session tokens.
+
+    Only verifies tokens and extracts user_id - no user sync needed.
 
     Expects the Authorization header in format:
     Authorization: Bearer <session_token>
@@ -25,7 +45,7 @@ class ClerkAuthentication(authentication.BaseAuthentication):
         Authenticate the request using Clerk session token.
 
         Returns:
-            tuple: (account, token) if authenticated, None otherwise
+            tuple: (user, token) if authenticated, None otherwise
         """
         # Get the authorization header
         auth_header = authentication.get_authorization_header(request).decode("utf-8")
@@ -55,15 +75,13 @@ class ClerkAuthentication(authentication.BaseAuthentication):
             if not session or not session.user_id:
                 raise exceptions.AuthenticationFailed("Invalid session")
 
-            # Sync or get the user account
-            account = sync_user_from_clerk(session.user_id)
-            if not account:
-                raise exceptions.AuthenticationFailed("Failed to sync user account")
+            # Create simple user object with user ID
+            user = ClerkUser(session.user_id)
 
-            # Attach the account to the request
-            request.account = account
+            # Attach to request for easy access
+            request.user_id = session.user_id
 
-            return (account, token)
+            return (user, token)
 
         except Exception as e:
             logger.error(f"Authentication failed: {e}")
