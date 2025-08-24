@@ -7,6 +7,100 @@ from django.db import models
 from django.utils import timezone
 
 
+class Account(models.Model):
+    """
+    Read-only account model that syncs with Clerk.
+    All user management happens through Clerk.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="Unique identifier for the account",
+    )
+
+    # Clerk fields
+    clerk_user_id = models.CharField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        help_text="Unique user ID from Clerk",
+    )
+
+    # Basic user info from Clerk (read-only)
+    email = models.EmailField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        help_text="User's email address from Clerk",
+    )
+    first_name = models.CharField(max_length=255, blank=True, help_text="User's first name from Clerk")
+    last_name = models.CharField(max_length=255, blank=True, help_text="User's last name from Clerk")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True, help_text="Last time user data was synced from Clerk")
+
+    class Meta:
+        ordering = ["-created_at"]
+        db_table = "accounts"
+
+    def __str__(self):
+        return self.email
+
+    def get_full_name(self):
+        """Return the user's full name."""
+        return f"{self.first_name} {self.last_name}".strip() or self.email
+
+    def get_short_name(self):
+        """Return the user's first name or email."""
+        return self.first_name or self.email.split("@")[0]
+
+    @classmethod
+    def sync_from_clerk(cls, clerk_user_data):
+        """
+        Create or update an account from Clerk user data.
+
+        Args:
+            clerk_user_data: User data from Clerk API
+
+        Returns:
+            tuple: (account, created) where created is True if account was created
+        """
+        clerk_user_id = clerk_user_data.get("id")
+        if not clerk_user_id:
+            raise ValueError("Clerk user data must include an ID")
+
+        # Get primary email
+        email_addresses = clerk_user_data.get("email_addresses", [])
+        primary_email = None
+        for email_obj in email_addresses:
+            if email_obj.get("id") == clerk_user_data.get("primary_email_address_id"):
+                primary_email = email_obj.get("email_address")
+                break
+
+        if not primary_email and email_addresses:
+            primary_email = email_addresses[0].get("email_address")
+
+        if not primary_email:
+            raise ValueError("No email address found in Clerk user data")
+
+        # Update or create account
+        account, created = cls.objects.update_or_create(
+            clerk_user_id=clerk_user_id,
+            defaults={
+                "email": primary_email,
+                "first_name": clerk_user_data.get("first_name", ""),
+                "last_name": clerk_user_data.get("last_name", ""),
+                "last_synced_at": timezone.now(),
+            },
+        )
+
+        return account, created
+
+
 class Site(models.Model):
     """
     Represents a website being tracked in the analytics system.
@@ -17,6 +111,14 @@ class Site(models.Model):
         default=uuid.uuid4,
         editable=False,
         help_text="Unique identifier for the site",
+    )
+    owner = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name="sites",
+        null=True,
+        blank=True,
+        help_text="The account that owns this site",
     )
     name = models.CharField(max_length=255, help_text="The name of the site")
     identifier = models.CharField(
@@ -536,9 +638,7 @@ class Site(models.Model):
             noun = random.choice(nouns)
 
             # Generate 6-character hash with letters and numbers (uppercase)
-            hash_part = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=6)
-            )
+            hash_part = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
             # Combine into identifier
             identifier = f"{adjective}-{noun}-{hash_part}"
@@ -575,30 +675,16 @@ class Session(models.Model):
     )
 
     # Session metrics
-    is_bounce = models.BooleanField(
-        default=True, help_text="Whether this session only had one page view"
-    )
-    duration = models.IntegerField(
-        default=0, help_text="Duration of the session in seconds"
-    )
-    page_view_count = models.IntegerField(
-        default=0, help_text="Number of page views in this session"
-    )
+    is_bounce = models.BooleanField(default=True, help_text="Whether this session only had one page view")
+    duration = models.IntegerField(default=0, help_text="Duration of the session in seconds")
+    page_view_count = models.IntegerField(default=0, help_text="Number of page views in this session")
 
     # Referrer for the session (first page view)
-    referrer = models.URLField(
-        max_length=2048, blank=True, help_text="Referrer URL for the session"
-    )
-    referrer_domain = models.CharField(
-        max_length=255, blank=True, help_text="Domain of the referrer"
-    )
+    referrer = models.URLField(max_length=2048, blank=True, help_text="Referrer URL for the session")
+    referrer_domain = models.CharField(max_length=255, blank=True, help_text="Domain of the referrer")
 
-    enter_page = models.CharField(
-        max_length=1024, help_text="First page visited in this session"
-    )
-    exit_page = models.CharField(
-        max_length=1024, blank=True, help_text="Last page visited in this session"
-    )
+    enter_page = models.CharField(max_length=1024, help_text="First page visited in this session")
+    exit_page = models.CharField(max_length=1024, blank=True, help_text="Last page visited in this session")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -649,9 +735,7 @@ class Session(models.Model):
             if count > 1:
                 first_view = page_views.first()
                 last_view = page_views.last()
-                self.duration = int(
-                    (last_view.created_at - first_view.created_at).total_seconds()
-                )
+                self.duration = int((last_view.created_at - first_view.created_at).total_seconds())
                 self.exit_page = last_view.path
 
             self.save()
@@ -689,12 +773,8 @@ class PageView(models.Model):
     path = models.CharField(max_length=1024, help_text="Path portion of the URL")
 
     # Referrer information
-    referrer = models.URLField(
-        max_length=2048, blank=True, help_text="Referrer URL if available"
-    )
-    referrer_domain = models.CharField(
-        max_length=255, blank=True, help_text="Domain of the referrer"
-    )
+    referrer = models.URLField(max_length=2048, blank=True, help_text="Referrer URL if available")
+    referrer_domain = models.CharField(max_length=255, blank=True, help_text="Domain of the referrer")
 
     # User identification (for session assignment)
     ip_hash = models.CharField(max_length=64, help_text="Hashed IP address for privacy")
@@ -702,12 +782,8 @@ class PageView(models.Model):
 
     # Device information (parsed from user agent)
     browser = models.CharField(max_length=50, blank=True, help_text="Browser name")
-    browser_version = models.CharField(
-        max_length=20, blank=True, help_text="Browser version"
-    )
-    operating_system = models.CharField(
-        max_length=50, blank=True, help_text="Operating system"
-    )
+    browser_version = models.CharField(max_length=20, blank=True, help_text="Browser version")
+    operating_system = models.CharField(max_length=50, blank=True, help_text="Operating system")
     device_type = models.CharField(
         max_length=20,
         blank=True,
@@ -723,9 +799,7 @@ class PageView(models.Model):
     )
 
     # Location information (parsed from IP)
-    country = models.CharField(
-        max_length=2, blank=True, help_text="ISO 3166-1 alpha-2 country code"
-    )
+    country = models.CharField(max_length=2, blank=True, help_text="ISO 3166-1 alpha-2 country code")
     region = models.CharField(max_length=255, blank=True, help_text="Region/state name")
     city = models.CharField(max_length=255, blank=True, help_text="City name")
 

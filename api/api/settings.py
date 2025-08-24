@@ -137,8 +137,9 @@ REST_FRAMEWORK = {
     # Pagination
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
-    # Authentication - will be updated when we add Clerk
+    # Authentication - using Clerk
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "server.auth.authentication.ClerkAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     # Permissions - require authentication by default

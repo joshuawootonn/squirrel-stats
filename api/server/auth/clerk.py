@@ -92,3 +92,50 @@ def get_user_by_id(user_id: str) -> Optional[User]:
     except Exception as e:
         logger.error(f"Failed to get user by ID: {e}")
         return None
+
+
+def sync_user_from_clerk(clerk_user_id: str):
+    """
+    Sync a user account from Clerk to our database.
+
+    Args:
+        clerk_user_id: The Clerk user ID to sync
+
+    Returns:
+        Account object or None if sync failed
+    """
+    from server.models import Account
+
+    clerk = get_clerk_client()
+    if not clerk:
+        logger.error("Clerk client not configured")
+        return None
+
+    try:
+        # Get user from Clerk
+        clerk_user = clerk.users.get(user_id=clerk_user_id)
+
+        # Convert to dict for our sync method
+        user_data = {
+            "id": clerk_user.id,
+            "email_addresses": [
+                {"id": ea.id, "email_address": ea.email_address} for ea in (clerk_user.email_addresses or [])
+            ],
+            "primary_email_address_id": clerk_user.primary_email_address_id,
+            "first_name": clerk_user.first_name or "",
+            "last_name": clerk_user.last_name or "",
+        }
+
+        # Sync to our database
+        account, created = Account.sync_from_clerk(user_data)
+
+        if created:
+            logger.info(f"Created new account from Clerk: {account.email}")
+        else:
+            logger.info(f"Updated account from Clerk: {account.email}")
+
+        return account
+
+    except Exception as e:
+        logger.error(f"Failed to sync user from Clerk: {e}")
+        return None
