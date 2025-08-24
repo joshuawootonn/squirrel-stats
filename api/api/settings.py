@@ -183,15 +183,12 @@ else:
     CLERK_CLIENT = None
 
 # Frontend Configuration
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:7777")
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",  # In case Next.js uses port 3001
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-]
+# Single configurable frontend origin
+FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "http://localhost:7777")
+CORS_ALLOWED_ORIGINS = [FRONTEND_ORIGIN]
 
 # Allow credentials (for authentication)
 CORS_ALLOW_CREDENTIALS = True
