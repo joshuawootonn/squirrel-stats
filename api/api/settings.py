@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-xr4m4z^aj(7_)(3g7-06)a!7qf&xd$uy+l(+$rb&(cxjyyuh83
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 
 # Application definition
@@ -140,7 +140,6 @@ REST_FRAMEWORK = {
     # Authentication - using Clerk
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "server.auth.authentication.ClerkAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
     ],
     # Permissions - require authentication by default
     "DEFAULT_PERMISSION_CLASSES": [
@@ -180,3 +179,6 @@ if CLERK_SECRET_KEY:
     CLERK_CLIENT = Clerk(bearer_auth=CLERK_SECRET_KEY)
 else:
     CLERK_CLIENT = None
+
+# Frontend Configuration
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
