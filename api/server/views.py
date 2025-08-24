@@ -11,7 +11,7 @@ def index(request):
  `\\|/~\>>
    `\\_<_
 
-Collecting nuts per usual...
+Collecting nuts per usual... (Squirrel ASCII art by David Lifson)
     </pre>
     """
     return HttpResponse(squirrel_art)
