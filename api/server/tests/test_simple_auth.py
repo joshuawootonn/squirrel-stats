@@ -21,10 +21,11 @@ class AuthTest(TestCase):
     @patch("server.auth.authentication.settings.CLERK_CLIENT")
     def test_authentication_success(self, mock_clerk):
         """Test successful authentication extracts user_id."""
-        # Mock Clerk session
-        mock_session = Mock()
-        mock_session.user_id = "user_123"
-        mock_clerk.sessions.verify.return_value = mock_session
+        # Mock Clerk authenticate_request response
+        mock_request_state = Mock()
+        mock_request_state.is_signed_in = True
+        mock_request_state.payload = {"sub": "user_123"}  # JWT payload with user ID in 'sub' field
+        mock_clerk.authenticate_request.return_value = mock_request_state
 
         # Make authenticated request
         self.client.credentials(HTTP_AUTHORIZATION="Bearer valid_token")
@@ -42,7 +43,7 @@ class AuthTest(TestCase):
     @patch("server.auth.authentication.settings.CLERK_CLIENT")
     def test_invalid_token(self, mock_clerk):
         """Test invalid token fails authentication."""
-        mock_clerk.sessions.verify.side_effect = Exception("Invalid token")
+        mock_clerk.authenticate_request.side_effect = Exception("Invalid token")
 
         self.client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
         response = self.client.get("/api/v1/sites/")
@@ -64,10 +65,11 @@ class SiteOwnershipTest(TestCase):
     @patch("server.auth.authentication.settings.CLERK_CLIENT")
     def test_user_sees_only_own_sites(self, mock_clerk):
         """Test users can only see their own sites."""
-        # Mock Alice's session
-        mock_session = Mock()
-        mock_session.user_id = "user_alice"
-        mock_clerk.sessions.verify.return_value = mock_session
+        # Mock Alice's authentication
+        mock_request_state = Mock()
+        mock_request_state.is_signed_in = True
+        mock_request_state.payload = {"sub": "user_alice"}
+        mock_clerk.authenticate_request.return_value = mock_request_state
 
         self.client.credentials(HTTP_AUTHORIZATION="Bearer alice_token")
         response = self.client.get("/api/v1/sites/")
@@ -80,10 +82,11 @@ class SiteOwnershipTest(TestCase):
     @patch("server.auth.authentication.settings.CLERK_CLIENT")
     def test_create_site_assigns_user_id(self, mock_clerk):
         """Test creating a site assigns the correct user_id."""
-        # Mock Charlie's session
-        mock_session = Mock()
-        mock_session.user_id = "user_charlie"
-        mock_clerk.sessions.verify.return_value = mock_session
+        # Mock Charlie's authentication
+        mock_request_state = Mock()
+        mock_request_state.is_signed_in = True
+        mock_request_state.payload = {"sub": "user_charlie"}
+        mock_clerk.authenticate_request.return_value = mock_request_state
 
         self.client.credentials(HTTP_AUTHORIZATION="Bearer charlie_token")
         response = self.client.post("/api/v1/sites/", {"name": "Charlie's New Site"}, format="json")
@@ -97,10 +100,11 @@ class SiteOwnershipTest(TestCase):
     @patch("server.auth.authentication.settings.CLERK_CLIENT")
     def test_site_limit_per_user(self, mock_clerk):
         """Test site limit is enforced per user."""
-        # Mock Dave's session
-        mock_session = Mock()
-        mock_session.user_id = "user_dave"
-        mock_clerk.sessions.verify.return_value = mock_session
+        # Mock Dave's authentication
+        mock_request_state = Mock()
+        mock_request_state.is_signed_in = True
+        mock_request_state.payload = {"sub": "user_dave"}
+        mock_clerk.authenticate_request.return_value = mock_request_state
 
         # Create 50 sites for Dave
         for i in range(50):

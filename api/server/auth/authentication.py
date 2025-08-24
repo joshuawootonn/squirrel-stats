@@ -4,6 +4,7 @@ Simple Clerk authentication for Django REST Framework.
 
 import logging
 
+from clerk_backend_api import AuthenticateRequestOptions
 from django.conf import settings
 from rest_framework import authentication, exceptions
 
@@ -42,7 +43,7 @@ class ClerkAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
         """
-        Authenticate the request using Clerk session token.
+        Authenticate the request using Clerk session token with modern networkless verification.
 
         Returns:
             tuple: (user, token) if authenticated, None otherwise
@@ -66,21 +67,27 @@ class ClerkAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("Authentication service unavailable")
 
         try:
-            # Verify the session token with Clerk
-            session = clerk.sessions.verify(
-                session_id=token,
-                token=token,
-            )
+            auth_options = AuthenticateRequestOptions()
 
-            if not session or not session.user_id:
+            request_state = clerk.authenticate_request(request, auth_options)
+
+            if not request_state.is_signed_in:
                 raise exceptions.AuthenticationFailed("Invalid session")
 
-            # Create simple user object with user ID
-            user = ClerkUser(session.user_id)
+            # Extract user ID from the JWT payload
+            if not request_state.payload:
+                raise exceptions.AuthenticationFailed("No payload found in token")
 
-            # Attach to request for easy access
-            request.user_id = session.user_id
+            user_id = request_state.payload.get("sub")  # 'sub' (subject) contains the user ID in JWT
 
+            if not user_id:
+                raise exceptions.AuthenticationFailed("No user ID found in token")
+
+            user = ClerkUser(user_id)
+
+            request.user_id = user_id
+
+            logger.debug(f"Successfully authenticated user: {user_id}")
             return (user, token)
 
         except Exception as e:
