@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -87,10 +88,7 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "UserAttributeSimilarityValidator"
-        ),
+        "NAME": ("django.contrib.auth.password_validation." "UserAttributeSimilarityValidator"),
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -166,3 +164,18 @@ REST_FRAMEWORK = {
         "user": "1000/hour",
     },
 }
+
+# Clerk Configuration
+CLERK_SECRET_KEY = os.environ.get("CLERK_SECRET_KEY", "")
+CLERK_PUBLISHABLE_KEY = os.environ.get("CLERK_PUBLISHABLE_KEY", "")
+
+# Clerk API URL (for fetching JWKS)
+CLERK_FRONTEND_API = os.environ.get("CLERK_FRONTEND_API", "https://api.clerk.com")
+
+# Initialize Clerk client
+if CLERK_SECRET_KEY:
+    from clerk_backend_api import Clerk
+
+    CLERK_CLIENT = Clerk(bearer_auth=CLERK_SECRET_KEY)
+else:
+    CLERK_CLIENT = None
