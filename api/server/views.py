@@ -5,6 +5,10 @@ import logging
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from user_agents import parse
 
 from .models import PageView, Site
@@ -161,3 +165,19 @@ def parse_user_agent(user_agent_string):
             "browser_version": "",
             "os": "Unknown",
         }
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Simple health check endpoint to verify DRF is working.
+    """
+    return Response(
+        {
+            "status": "healthy",
+            "message": "Django REST Framework is configured and working!",
+            "version": "v1",
+        },
+        status=status.HTTP_200_OK,
+    )
