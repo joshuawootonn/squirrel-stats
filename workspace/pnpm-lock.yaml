@@ -17,6 +17,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^6.31.4
         version: 6.31.4(next@15.5.0)(react-dom@19.1.0)(react@19.1.0)
+      '@tanstack/react-query':
+        specifier: ^5.85.5
+        version: 5.85.5(react@19.1.0)
       next:
         specifier: 15.5.0
         version: 15.5.0(react-dom@19.1.0)(react@19.1.0)
@@ -718,6 +721,19 @@ packages:
       postcss: 8.5.6
       tailwindcss: 4.1.12
     dev: true
+
+  /@tanstack/query-core@5.85.5:
+    resolution: {integrity: sha512-KO0WTob4JEApv69iYp1eGvfMSUkgw//IpMnq+//cORBzXf0smyRwPLrUvEe5qtAEGjwZTXrjxg+oJNP/C00t6w==}
+    dev: false
+
+  /@tanstack/react-query@5.85.5(react@19.1.0):
+    resolution: {integrity: sha512-/X4EFNcnPiSs8wM2v+b6DqS5mmGeuJQvxBglmDxl6ZQb5V26ouD2SJYAcC3VjbNwqhY2zjxVD15rDA5nGbMn3A==}
+    peerDependencies:
+      react: ^18 || ^19
+    dependencies:
+      '@tanstack/query-core': 5.85.5
+      react: 19.1.0
+    dev: false
 
   /@types/node@20.19.11:
     resolution: {integrity: sha512-uug3FEEGv0r+jrecvUUpbY8lLisvIjg6AAic6a2bSP5OEOLeJsDSnvhCDov7ipFFMXS3orMpzlmi0ZcuGkBbow==}
