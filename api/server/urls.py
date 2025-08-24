@@ -1,9 +1,11 @@
 from django.urls import path
 
-from . import views
+from .views.general import index
+from .views.health import health_check
+from .views.pageviews import track_pageview
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("pv", views.track_pageview, name="track_pageview"),
-    path("health/", views.health_check, name="health_check"),
+    path("", index, name="index"),
+    path("pv", track_pageview, name="track_pageview"),
+    path("health/", health_check, name="health_check"),
 ]
