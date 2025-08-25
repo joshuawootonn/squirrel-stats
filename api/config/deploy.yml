@@ -1,0 +1,40 @@
+# Kamal deployment configuration for Squirrel Stats API
+service: squirrel-stats
+
+# Docker image configuration
+image: joshuawootonn/squirrel-stats
+
+# Servers configuration
+servers:
+  web:
+    hosts:
+      - 5.161.248.77
+
+volumes:
+  - "/var/lib/squirrel-stats/data:/app/data"
+
+proxy:
+  ssl: true
+  host: api.usesquirrelstats.com
+  app_port: 8000
+
+# Registry configuration (Docker Hub)
+registry:
+  username: joshuawootonn
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  context: .
+
+# Environment variables
+env:
+  clear:
+    DJANGO_SETTINGS_MODULE: api.settings_prod
+  secret:
+    - SECRET_KEY
+    - CLERK_SECRET_KEY
+    - CLERK_PUBLISHABLE_KEY
+    - FRONTEND_URL
+    - ALLOWED_HOSTS

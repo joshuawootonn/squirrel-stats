@@ -120,6 +120,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = "/app/staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -187,8 +188,7 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:7777")
 
 # CORS Configuration
 # Single configurable frontend origin
-FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "http://localhost:7777")
-CORS_ALLOWED_ORIGINS = [FRONTEND_ORIGIN]
+CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 
 # Allow credentials (for authentication)
 CORS_ALLOW_CREDENTIALS = True

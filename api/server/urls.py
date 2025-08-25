@@ -13,7 +13,7 @@ router.register(r"sites", SiteViewSet, basename="site")
 urlpatterns = [
     path("", index, name="index"),
     path("pv", track_pageview, name="track_pageview"),
-    path("health/", health_check, name="health_check"),
+    path("up", health_check, name="health_check"),
     # Include the router URLs
     path("", include(router.urls)),
 ]
