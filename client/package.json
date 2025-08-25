@@ -1,0 +1,35 @@
+{
+    "name": "@squirrel-stats/client",
+    "version": "0.0.0",
+    "description": "A client package for uploading your stats to Squirrel Stats",
+    "keywords": [
+        "squirrel-stats",
+        "client"
+    ],
+    "homepage": "https://github.com/squirrel-stats/client",
+    "bugs": {
+        "url": "https://github.com/joshuawootonn/squirrel-stats/issues"
+    },
+    "author": "Joshua Wootton <joshuawootonn@gmail.com> (https://joshuawootonn.com)",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/joshuawootonn/squirrel-stats.git"
+    },
+    "files": [
+        "dist"
+    ],
+    "type": "module",
+    "main": "dist/index.js",
+    "dependencies": {
+        "typescript": "^5.9.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "ci": "npm run build && npm run check-format",
+        "format": "prettier --write .",
+        "check-format": "prettier --check ."
+    },
+    "devDependencies": {
+        "prettier": "^3.6.2"
+    }
+}
