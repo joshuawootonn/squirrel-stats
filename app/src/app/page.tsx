@@ -2,8 +2,8 @@
 
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
-import { useSites } from "../hooks/useSites";
-import type { Site } from "../lib/api";
+import { useSites } from "@/hooks/useSites";
+import type { Site } from "@/lib/api";
 
 export default function Home() {
   const [newSiteName, setNewSiteName] = useState("");

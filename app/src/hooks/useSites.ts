@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { createSite, fetchSites } from "../lib/api";
+import { createSite, fetchSites } from "@/lib/api";
 
 export function useSites() {
   const { getToken, isSignedIn } = useAuth();
