@@ -4,6 +4,7 @@ interface Site {
   identifier: string;
   created_at: string;
   updated_at: string;
+  pageview_count: number;
 }
 
 interface SitesResponse {
@@ -43,7 +44,7 @@ export async function createSite(token: string, name: string): Promise<Site> {
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(
-      errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
     );
   }
 

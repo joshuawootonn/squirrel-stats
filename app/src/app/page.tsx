@@ -114,6 +114,10 @@ export default function Home() {
                         {new Date(site.created_at).toLocaleDateString()}
                       </div>
                     </div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      <span className="font-medium">Page Views:</span>{" "}
+                      {site.pageview_count}
+                    </div>
                   </div>
                 ))}
               </div>
