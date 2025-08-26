@@ -41,6 +41,11 @@ export class SquirrelStats {
      */
     constructor(siteId: string) {
         this.siteId = siteId;
+        if ('prerendering' in document && document.prerendering) {
+            document.addEventListener('prerenderingchange', () => this.trackPageview(), { once: true });
+        } else {
+            setTimeout(() => this.trackPageview());
+        }
     }
 
     private getQueryParams(): Record<string, string> {
