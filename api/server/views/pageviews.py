@@ -60,7 +60,7 @@ def parse_user_agent(user_agent_string):
 
 
 @csrf_exempt
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def track_pageview(request):
     """
     Track a page view event. Accepts both GET and POST requests.
@@ -75,8 +75,13 @@ def track_pageview(request):
     Returns a JSON response.
     """
     try:
-        # Extract parameters from GET
-        params = request.GET
+        # Extract parameters
+        # Prefer query string values; merge POST body for beacon/form clients
+        params = request.GET.copy()
+        if request.method == "POST":
+            for key in request.POST.keys():
+                if key not in params:
+                    params[key] = request.POST.get(key)
 
         # Get required parameters
         site_identifier = params.get("sid")

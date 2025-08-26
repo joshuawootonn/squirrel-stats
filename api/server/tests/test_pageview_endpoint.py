@@ -11,7 +11,6 @@ These tests verify the behavior of the page view tracking endpoint including:
 import json
 
 from django.test import Client, TestCase, TransactionTestCase
-
 from server.models import PageView, Site
 
 
@@ -110,8 +109,8 @@ class SiteExistsTests(TransactionTestCase):
         page_view = PageView.objects.latest("created_at")
         self.assertEqual(page_view.url, "https://example.com/test")  # URL without query params
 
-    def test_post_request_returns_method_not_allowed(self):
-        """When: POST request is made, Then: It returns 405 Method Not Allowed"""
+    def test_post_request_is_accepted(self):
+        """When: POST request is made, Then: It returns 200 and ok"""
         # Given
         # Site already created in setUp
 
@@ -122,11 +121,13 @@ class SiteExistsTests(TransactionTestCase):
                 "sid": self.site.identifier,
                 "h": "https://example.com",
                 "p": "/",
+                "qs": json.dumps({}),
             },
         )
 
         # Then
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok"})
 
 
 class NoSiteExistsTests(TestCase):
