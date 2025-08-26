@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Build output
+dist/
+
+# Generated files
+vitest.config.d.ts
+vitest.config.js
+
+# Changeset config (auto-generated)
+.changeset/config.json
