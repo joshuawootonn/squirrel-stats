@@ -56,10 +56,10 @@ describe('SquirrelStats', () => {
             expect(capturedRequests[0]?.url).toBe('https://api.usesquirrelstats.com/pv');
 
             const params = capturedRequests[0]?.params;
-            expect(params?.hostname).toBe('https://example.com');
-            expect(params?.pathname).toBe('/test-page');
-            expect(params?.referrer).toBe('https://google.com');
-            expect(params?.siteId).toBe('site_12345');
+            expect(params?.h).toBe('https://example.com');
+            expect(params?.p).toBe('/test-page');
+            expect(params?.r).toBe('https://google.com');
+            expect(params?.sid).toBe('site_12345');
             expect(params?.buster).toBeDefined();
             expect(Number(params?.buster)).toBeGreaterThan(0);
         });
@@ -68,7 +68,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            const queryParams = JSON.parse(params?.queryParams || '{}');
+            const queryParams = JSON.parse(params?.qs || '{}');
 
             expect(queryParams.utm_source).toBe('google');
             expect(queryParams.utm_medium).toBe('cpc');
@@ -84,15 +84,15 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            expect(params?.hostname).toBe('https://canonical-example.com');
-            expect(params?.pathname).toBe('/canonical-page');
+            expect(params?.h).toBe('https://canonical-example.com');
+            expect(params?.p).toBe('/canonical-page');
         });
 
         it('should use custom referrer when provided', () => {
             tracker.trackPageview({ referrer: 'https://custom-referrer.com' });
 
             const params = capturedRequests[0]?.params;
-            expect(params?.referrer).toBe('https://custom-referrer.com');
+            expect(params?.r).toBe('https://custom-referrer.com');
         });
 
         it('should filter out same-origin referrer', () => {
@@ -105,7 +105,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            expect(params?.referrer).toBe('');
+            expect(params?.r).toBe('');
         });
 
         it('should handle missing pathname', () => {
@@ -123,7 +123,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            expect(params?.pathname).toBe('/');
+            expect(params?.p).toBe('/');
         });
     });
 
@@ -196,7 +196,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            const queryParams = JSON.parse(params?.queryParams || '{}');
+            const queryParams = JSON.parse(params?.qs || '{}');
 
             expect(queryParams.utm_source).toBe('facebook');
             expect(queryParams.utm_medium).toBe('social');
@@ -220,7 +220,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            const queryParams = JSON.parse(params?.queryParams || '{}');
+            const queryParams = JSON.parse(params?.qs || '{}');
 
             expect(queryParams.q).toBe('search');
             expect(queryParams.ref).toBe('homepage');
@@ -243,7 +243,7 @@ describe('SquirrelStats', () => {
             tracker.trackPageview();
 
             const params = capturedRequests[0]?.params;
-            const queryParams = JSON.parse(params?.queryParams || '{}');
+            const queryParams = JSON.parse(params?.qs || '{}');
 
             expect(queryParams.utm_source).toBe('google');
             expect(queryParams.irrelevant).toBeUndefined();
@@ -275,7 +275,7 @@ describe('SquirrelStats', () => {
             expect(mockImg.setAttribute).toHaveBeenCalledWith('aria-hidden', 'true');
             expect(mockAppendChild).toHaveBeenCalledWith(mockImg);
             expect(mockImg.src).toContain('https://api.usesquirrelstats.com/pv');
-            expect(mockImg.src).toContain('siteId=site_12345');
+            expect(mockImg.src).toContain('sid=site_12345');
         });
     });
 });
