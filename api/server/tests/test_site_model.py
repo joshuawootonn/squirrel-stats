@@ -1,15 +1,17 @@
 """
-Tests for the Site model.
+Tests for the Site model and Site serializer.
 
 These tests verify the behavior of the Site model including:
 - Identifier generation
 - Uniqueness constraints
 - String representation
+- Page view count integration
 """
 
 from django.test import TestCase
 
-from server.models import Site
+from server.models import PageView, Site
+from server.serializers import SiteSerializer
 
 
 class SiteModelTests(TestCase):
@@ -31,9 +33,7 @@ class SiteModelTests(TestCase):
         parts = site.identifier.split("-")
         self.assertEqual(len(parts), 3)
         self.assertEqual(len(parts[2]), 6)  # 6-character hash
-        self.assertTrue(
-            all(c.isupper() or c.isdigit() for c in parts[2])
-        )  # Uppercase alphanumeric
+        self.assertTrue(all(c.isupper() or c.isdigit() for c in parts[2]))  # Uppercase alphanumeric
 
     def test_multiple_sites_have_unique_identifiers(self):
         """When: Multiple sites are created, Then: Their identifiers are unique"""
@@ -100,3 +100,68 @@ class SiteIdentifierGenerationTests(TestCase):
             # Hash part should be uppercase alphanumeric
             self.assertEqual(len(hash_part), 6)
             self.assertTrue(all(c.isupper() or c.isdigit() for c in hash_part))
+
+
+class SiteSerializerTests(TestCase):
+    """Given: The Site serializer with page view counts"""
+
+    def setUp(self):
+        """Set up test data."""
+        self.site = Site.objects.create(name="Test Site", user_id="test_user_123")
+
+        # Create some page views for the site
+        for i in range(5):
+            PageView.objects.create(
+                site=self.site,
+                url=f"https://example.com/page{i}",
+                path=f"/page{i}",
+                referrer="",
+                ip_hash=f"hash_{i}",
+                user_agent="test_agent",
+                browser="Chrome",
+                browser_version="120.0",
+                operating_system="Linux",
+                device_type="desktop",
+            )
+
+    def test_serializer_includes_pageview_count(self):
+        """When: Site with pageview_count annotation is serialized, Then: It includes the field"""
+        # Given
+        # Add pageview_count to the site instance (simulating the annotation)
+        self.site.pageview_count = 5
+
+        # When
+        serializer = SiteSerializer(self.site)
+        data = serializer.data
+
+        # Then
+        self.assertIn("pageview_count", data)
+        self.assertEqual(data["pageview_count"], 5)
+
+    def test_serializer_pageview_count_is_readonly(self):
+        """When: Serializer is used to create/update, Then: pageview_count is read-only"""
+        # Given
+        data = {"name": "Updated Site", "pageview_count": 100}  # This should be ignored since it's read-only
+
+        # When
+        serializer = SiteSerializer(self.site, data=data, partial=True)
+        serializer.is_valid()
+        updated_site = serializer.save()
+
+        # Then
+        # The site should be updated but pageview_count is not a model field
+        self.assertEqual(updated_site.name, "Updated Site")
+
+    def test_site_with_no_pageviews_has_zero_count(self):
+        """When: Site with zero pageview_count annotation is serialized, Then: count is 0"""
+        # Given
+        site_no_views = Site.objects.create(name="Empty Site", user_id="test_user_456")
+        site_no_views.pageview_count = 0  # Simulate annotation
+
+        # When
+        serializer = SiteSerializer(site_no_views)
+        data = serializer.data
+
+        # Then
+        self.assertIn("pageview_count", data)
+        self.assertEqual(data["pageview_count"], 0)

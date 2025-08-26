@@ -12,13 +12,15 @@ class SiteSerializer(serializers.ModelSerializer):
     Serializer for Site model with full CRUD support.
     - identifier is read-only (auto-generated)
     - owner is set automatically to the authenticated user
-    - Only exposes name and identifier fields
+    - Includes page view count for each site
     """
+
+    pageview_count = serializers.ReadOnlyField()
 
     class Meta:
         model = Site
-        fields = ["id", "name", "identifier", "created_at", "updated_at"]
-        read_only_fields = ["id", "identifier", "created_at", "updated_at"]
+        fields = ["id", "name", "identifier", "created_at", "updated_at", "pageview_count"]
+        read_only_fields = ["id", "identifier", "created_at", "updated_at", "pageview_count"]
 
     def validate(self, attrs):
         """

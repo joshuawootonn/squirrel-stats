@@ -108,9 +108,7 @@ class SiteExistsTests(TransactionTestCase):
         # Then
         self.assertEqual(response.status_code, 200)  # Still succeeds
         page_view = PageView.objects.latest("created_at")
-        self.assertEqual(
-            page_view.url, "https://example.com/test"
-        )  # URL without query params
+        self.assertEqual(page_view.url, "https://example.com/test")  # URL without query params
 
     def test_post_request_returns_method_not_allowed(self):
         """When: POST request is made, Then: It returns 405 Method Not Allowed"""
@@ -201,9 +199,7 @@ class PrivacyRequirementsTests(TestCase):
         # Then
         page_view = PageView.objects.latest("created_at")
         self.assertEqual(len(page_view.ip_hash), 64)  # SHA-256 produces 64 char hex
-        self.assertNotIn(
-            "192.168.1.100", page_view.ip_hash
-        )  # IP not stored in plain text
+        self.assertNotIn("192.168.1.100", page_view.ip_hash)  # IP not stored in plain text
 
     def test_no_referrer_stores_empty_string(self):
         """When: No referrer is provided, Then: It stores empty string"""

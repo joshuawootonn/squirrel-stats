@@ -2,6 +2,7 @@
 Views for Site CRUD operations.
 """
 
+from django.db.models import Count
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -24,10 +25,11 @@ class SiteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filter sites to only show those owned by the authenticated user.
+        Includes page view counts for each site.
         """
         # Get the user_id from the request (set by ClerkAuthentication)
         if hasattr(self.request, "user_id"):
-            return Site.objects.filter(user_id=self.request.user_id)
+            return Site.objects.filter(user_id=self.request.user_id).annotate(pageview_count=Count("page_views"))
         return Site.objects.none()
 
     def perform_create(self, serializer):
