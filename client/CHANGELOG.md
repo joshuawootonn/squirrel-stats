@@ -1,5 +1,17 @@
 # @squirrel-stats/client
 
+## 0.0.3
+
+### Patch Changes
+
+- 8146a29: Added a warning when you fail to pass a site identifier. Something like this:
+
+    ```text
+    [SquirrelStats] No siteId provided in constructor; tracking will be disabled.
+    ```
+
+- c663a74: Fix incorrect query string configuration. Moved to a shorter scheme to save bytes.
+
 ## 0.0.2
 
 ### Patch Changes
