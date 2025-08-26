@@ -1,5 +1,11 @@
 # @squirrel-stats/client
 
+## 0.0.2
+
+### Patch Changes
+
+- 2c21f5f: Updated script to track entry page and not just subsequent navigations
+
 ## 0.0.1
 
 ### Patch Changes
