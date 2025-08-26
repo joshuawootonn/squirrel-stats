@@ -1,6 +1,6 @@
 {
     "name": "@squirrel-stats/client",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "A client package for uploading your stats to Squirrel Stats",
     "keywords": [
         "squirrel-stats",
