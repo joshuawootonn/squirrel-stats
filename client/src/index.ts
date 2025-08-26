@@ -150,11 +150,11 @@ export class SquirrelStats {
         const referrer = opts?.referrer ?? (document.referrer.indexOf(hostname) < 0 ? document.referrer : '');
 
         const params: TrackingParams = {
-            hostname,
-            pathname,
-            referrer,
-            siteId: this.siteId,
-            queryParams: JSON.stringify(this.getQueryParams()),
+            h: hostname,
+            p: pathname,
+            r: referrer,
+            sid: this.siteId,
+            qs: JSON.stringify(this.getQueryParams()),
         };
 
         this.send(new URL('pv', this.baseUrl).toString(), params);
