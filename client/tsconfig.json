@@ -27,5 +27,7 @@
 
         /* AND if you're building for a library in a monorepo: */
         //   "declarationMap": true
-    }
+    },
+    "include": ["src/**/*"],
+    "exclude": ["vitest.config.ts", "dist", "node_modules"]
 }
