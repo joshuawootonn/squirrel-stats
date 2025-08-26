@@ -41,6 +41,9 @@ export class SquirrelStats {
      */
     constructor(siteId: string) {
         this.siteId = siteId;
+        if (siteId == null) {
+            console.warn('[SquirrelStats] No siteId provided in constructor; tracking will be disabled.');
+        }
         if ('prerendering' in document && document.prerendering) {
             document.addEventListener('prerenderingchange', () => this.trackPageview(), { once: true });
         } else {
@@ -136,6 +139,11 @@ export class SquirrelStats {
         const location = this.getLocation();
 
         if (!location.host) return;
+        if (this.siteId == null) {
+            // Warn and skip if siteId was not provided
+            console.warn('[SquirrelStats] No siteId provided in constructor; pageview not sent.');
+            return;
+        }
 
         const hostname = location.origin;
         const pathname = location.pathname ?? '/';
@@ -161,6 +169,12 @@ export class SquirrelStats {
         const hostname = location.origin;
         const pathname = location.pathname ?? '/';
         const referrer = document.referrer.indexOf(hostname) < 0 ? document.referrer : '';
+
+        if (this.siteId == null) {
+            // Warn and skip if siteId was not provided
+            console.warn('[SquirrelStats] No siteId provided in constructor; event not sent.', { eventName });
+            return;
+        }
 
         const params: TrackingParams = {
             eventName,
