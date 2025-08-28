@@ -37,22 +37,24 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-black`}
         >
-          <Providers>
-            <header className="flex justify-end items-center p-4 gap-4 h-16 border-b border-gray-200">
-              <SignedOut>
-                <SignInButton />
-                <SignUpButton>
-                  <button className="bg-black text-white font-medium text-sm h-10 px-4 hover:bg-gray-800 transition-colors">
-                    Sign Up
-                  </button>
-                </SignUpButton>
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </header>
-            {children}
-          </Providers>
+          <div className="isolate">
+            <Providers>
+              <header className="flex justify-end items-center p-4 gap-4 h-16 border-b border-gray-200">
+                <SignedOut>
+                  <SignInButton />
+                  <SignUpButton>
+                    <button className="bg-black text-white font-medium text-sm h-10 px-4 hover:bg-gray-800 transition-colors">
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton />
+                </SignedIn>
+              </header>
+              {children}
+            </Providers>
+          </div>
         </body>
       </html>
     </ClerkProvider>
