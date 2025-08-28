@@ -53,7 +53,7 @@ export default function Home() {
 
           {/* Error Display */}
           {(error || createError) && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-50 border-[1.5px] border-red-200 text-red-700 px-4 py-3">
               <strong>Error:</strong> {error?.message || createError?.message}
             </div>
           )}
@@ -77,7 +77,7 @@ export default function Home() {
                   <Popover.Trigger>Create</Popover.Trigger>
                   <Popover.Portal>
                     <Popover.Positioner sideOffset={8}>
-                      <Popover.Popup className="border bg-white p-4 shadow w-80">
+                      <Popover.Popup className="border-[1.5px] border-gray-300 bg-white p-4 shadow w-80">
                         <Popover.Title className="font-medium mb-2">
                           Create New Site
                         </Popover.Title>
@@ -97,7 +97,7 @@ export default function Home() {
                                 value={newSiteName}
                                 onChange={(e) => setNewSiteName(e.target.value)}
                                 placeholder="Enter site name"
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                                className="flex-1 px-3 py-2 border-[1.5px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent h-10"
                                 disabled={isCreating}
                               />
                               <Button.Root
@@ -119,11 +119,11 @@ export default function Home() {
 
             {isLoading ? (
               <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                <div className="inline-block animate-spin h-8 w-8 border-b-2 border-black"></div>
                 <p className="mt-2 text-gray-600">Loading sites...</p>
               </div>
             ) : sites.length === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <div className="text-center py-12 bg-gray-50 border-[1.5px] border-dashed border-gray-300">
                 <p className="text-gray-600">
                   No sites yet. Create your first site above!
                 </p>
@@ -133,7 +133,7 @@ export default function Home() {
                 {sites.map((site: Site) => (
                   <div
                     key={site.id}
-                    className="bg-white border border-black p-4"
+                    className="bg-white border-[1.5px] border-black p-4"
                   >
                     <div className="flex flex-row gap-1 justify-between items-center">
                       <h3 className="font-semibold text-lg ">

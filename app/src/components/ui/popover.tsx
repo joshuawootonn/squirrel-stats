@@ -103,7 +103,10 @@ function Popup(props: DivProps) {
   const { className, ...rest } = props;
   return (
     <HeadlessPopover.Popup
-      className={cx("border bg-white p-4 shadow w-80", className)}
+      className={cx(
+        "border-[1.5px] border-gray-300 bg-white p-4 shadow w-80",
+        className
+      )}
       {...rest}
     />
   );

@@ -8,17 +8,18 @@ const cx = (...classes: Array<string | undefined | false>) =>
 // Base button variants and sizes
 const buttonVariants = {
   variant: {
-    default: "bg-black text-white hover:bg-gray-800",
-    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
-    outline: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50",
-    ghost: "text-gray-900 hover:bg-gray-100",
-    destructive: "bg-red-600 text-white hover:bg-red-700",
+    default: "bg-black text-white hover:bg-gray-800 border-black",
+    secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200 border-gray-300",
+    outline: "border-gray-300 bg-white text-gray-900 hover:bg-gray-50",
+    ghost:
+      "text-gray-900 hover:bg-gray-100 border-transparent hover:border-gray-200",
+    destructive: "bg-red-600 text-white hover:bg-red-700 border-red-600",
   },
   size: {
-    sm: "px-2 py-1 text-xs",
-    default: "px-3 py-1 text-sm",
-    lg: "px-4 py-2 text-base",
-    xl: "px-6 py-3 text-lg",
+    sm: "px-3 py-2 text-xs h-8",
+    default: "px-4 py-2 text-sm h-10",
+    lg: "px-6 py-2 text-base h-12",
+    xl: "px-8 py-2 text-lg h-14",
   },
 } as const;
 
@@ -54,7 +55,7 @@ function Root(props: RootProps) {
       disabled={disabled || loading}
       className={cx(
         // Base styles
-        "inline-flex items-center justify-center rounded font-medium transition-colors",
+        "inline-flex items-center justify-center font-medium transition-colors border-[1.5px]",
         "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         // Variant styles
@@ -160,8 +161,8 @@ function Group(props: GroupProps) {
       className={cx(
         "inline-flex",
         orientation === "horizontal"
-          ? "flex-row [&>*:not(:first-child)]:ml-[-1px] [&>*:not(:first-child):not(:last-child)]:rounded-none [&>*:first-child]:rounded-r-none [&>*:last-child]:rounded-l-none"
-          : "flex-col [&>*:not(:first-child)]:mt-[-1px] [&>*:not(:first-child):not(:last-child)]:rounded-none [&>*:first-child]:rounded-b-none [&>*:last-child]:rounded-t-none",
+          ? "flex-row [&>*:not(:first-child)]:ml-[-1.5px]"
+          : "flex-col [&>*:not(:first-child)]:mt-[-1.5px]",
         className
       )}
     >
@@ -186,7 +187,7 @@ function Link(props: LinkProps) {
     <a
       className={cx(
         // Base styles
-        "inline-flex items-center justify-center rounded font-medium transition-colors",
+        "inline-flex items-center justify-center font-medium transition-colors border-[1.5px]",
         "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400",
         "no-underline",
         // Variant styles

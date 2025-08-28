@@ -11,3 +11,89 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/* Global hard corners override */
+* {
+  border-radius: 0 !important;
+}
+
+/* Consistent border width */
+.border {
+  border-width: 1.5px;
+}
+
+/* Override any remaining rounded classes */
+.rounded,
+.rounded-sm,
+.rounded-md,
+.rounded-lg,
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl,
+.rounded-full,
+.rounded-t,
+.rounded-r,
+.rounded-b,
+.rounded-l,
+.rounded-tl,
+.rounded-tr,
+.rounded-br,
+.rounded-bl,
+.rounded-t-sm,
+.rounded-r-sm,
+.rounded-b-sm,
+.rounded-l-sm,
+.rounded-tl-sm,
+.rounded-tr-sm,
+.rounded-br-sm,
+.rounded-bl-sm,
+.rounded-t-md,
+.rounded-r-md,
+.rounded-b-md,
+.rounded-l-md,
+.rounded-tl-md,
+.rounded-tr-md,
+.rounded-br-md,
+.rounded-bl-md,
+.rounded-t-lg,
+.rounded-r-lg,
+.rounded-b-lg,
+.rounded-l-lg,
+.rounded-tl-lg,
+.rounded-tr-lg,
+.rounded-br-lg,
+.rounded-bl-lg,
+.rounded-t-xl,
+.rounded-r-xl,
+.rounded-b-xl,
+.rounded-l-xl,
+.rounded-tl-xl,
+.rounded-tr-xl,
+.rounded-br-xl,
+.rounded-bl-xl,
+.rounded-t-2xl,
+.rounded-r-2xl,
+.rounded-b-2xl,
+.rounded-l-2xl,
+.rounded-tl-2xl,
+.rounded-tr-2xl,
+.rounded-br-2xl,
+.rounded-bl-2xl,
+.rounded-t-3xl,
+.rounded-r-3xl,
+.rounded-b-3xl,
+.rounded-l-3xl,
+.rounded-tl-3xl,
+.rounded-tr-3xl,
+.rounded-br-3xl,
+.rounded-bl-3xl,
+.rounded-t-full,
+.rounded-r-full,
+.rounded-b-full,
+.rounded-l-full,
+.rounded-tl-full,
+.rounded-tr-full,
+.rounded-br-full,
+.rounded-bl-full {
+  border-radius: 0 !important;
+}
