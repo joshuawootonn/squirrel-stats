@@ -4,6 +4,7 @@ import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
 import { useSites } from "@/hooks/useSites";
 import { Popover } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import type { Site } from "@/lib/api";
 
 export default function Home() {
@@ -64,17 +65,16 @@ export default function Home() {
                 Your Sites ({sites.length})
               </h2>
               <div className="flex items-center gap-2">
-                <button
+                <Button.Root
                   onClick={() => refetch()}
                   disabled={isLoading}
-                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                  variant="secondary"
+                  loading={isLoading}
                 >
-                  {isLoading ? "Loading..." : "Refresh"}
-                </button>
+                  <Button.Text>Refresh</Button.Text>
+                </Button.Root>
                 <Popover.Root>
-                  <Popover.Trigger className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800">
-                    Create
-                  </Popover.Trigger>
+                  <Popover.Trigger>Create</Popover.Trigger>
                   <Popover.Portal>
                     <Popover.Positioner sideOffset={8}>
                       <Popover.Popup className="border bg-white p-4 shadow w-80">
@@ -100,13 +100,13 @@ export default function Home() {
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                                 disabled={isCreating}
                               />
-                              <button
+                              <Button.Root
                                 type="submit"
-                                disabled={isCreating || !newSiteName.trim()}
-                                className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled={!newSiteName.trim()}
+                                loading={isCreating}
                               >
-                                {isCreating ? "Creating..." : "Create"}
-                              </button>
+                                <Button.Text>Create</Button.Text>
+                              </Button.Root>
                             </form>
                           )}
                         </Popover.Context>

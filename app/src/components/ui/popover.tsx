@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Popover as HeadlessPopover } from "@base-ui-components/react/popover";
+import { Button } from "./button";
 
 const cx = (...classes: Array<string | undefined | false>) =>
   classes.filter(Boolean).join(" ");
@@ -56,20 +57,29 @@ function Root(props: React.ComponentProps<typeof HeadlessPopover.Root>) {
 
 type ButtonProps = React.ComponentPropsWithoutRef<"button"> & {
   className?: string;
+  variant?: "default" | "secondary" | "outline" | "ghost" | "destructive";
+  size?: "sm" | "default" | "lg" | "xl";
 };
 function Trigger(props: ButtonProps) {
-  const { className, ...rest } = props;
+  const {
+    className,
+    variant = "default",
+    size = "default",
+    children,
+    ...rest
+  } = props;
   return (
     <HeadlessPopover.Trigger
       render={(triggerProps: any) => (
-        <button
+        <Button.Root
           {...triggerProps}
           {...rest}
-          className={cx(
-            "px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800",
-            className
-          )}
-        />
+          variant={variant}
+          size={size}
+          className={className}
+        >
+          <Button.Text>{children}</Button.Text>
+        </Button.Root>
       )}
     />
   );

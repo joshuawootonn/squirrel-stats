@@ -10,6 +10,7 @@ import {
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Button } from "@/components/ui/button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,9 +44,9 @@ export default function RootLayout({
                 <SignedOut>
                   <SignInButton />
                   <SignUpButton>
-                    <button className="bg-black text-white font-medium text-sm h-10 px-4 hover:bg-gray-800 transition-colors">
-                      Sign Up
-                    </button>
+                    <Button.Root className="h-10 px-4">
+                      <Button.Text>Sign Up</Button.Text>
+                    </Button.Root>
                   </SignUpButton>
                 </SignedOut>
                 <SignedIn>
