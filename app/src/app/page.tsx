@@ -3,6 +3,7 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { useState } from "react";
 import { useSites } from "@/hooks/useSites";
+import { Popover } from "@/components/ui/popover";
 import type { Site } from "@/lib/api";
 
 export default function Home() {
@@ -17,11 +18,15 @@ export default function Home() {
     createError,
   } = useSites();
 
-  const handleCreateSite = (e: React.FormEvent) => {
+  const handleCreateSite = (e: React.FormEvent, close: () => void) => {
     e.preventDefault();
     if (!newSiteName.trim()) return;
-    createSite(newSiteName.trim());
-    setNewSiteName("");
+    createSite(newSiteName.trim(), {
+      onSuccess: () => {
+        setNewSiteName("");
+        close();
+      },
+    } as any);
   };
 
   return (
@@ -43,27 +48,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Create Site Form */}
-          <div className="bg-gray-50 p-6 rounded-lg border">
-            <h2 className="text-xl font-semibold mb-4">Create New Site</h2>
-            <form onSubmit={handleCreateSite} className="flex gap-3">
-              <input
-                type="text"
-                value={newSiteName}
-                onChange={(e) => setNewSiteName(e.target.value)}
-                placeholder="Enter site name"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                disabled={isCreating}
-              />
-              <button
-                type="submit"
-                disabled={isCreating || !newSiteName.trim()}
-                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {isCreating ? "Creating..." : "Create Site"}
-              </button>
-            </form>
-          </div>
+          {/* Create Site moved to Popover in header below */}
 
           {/* Error Display */}
           {(error || createError) && (
@@ -78,13 +63,58 @@ export default function Home() {
               <h2 className="text-xl font-semibold">
                 Your Sites ({sites.length})
               </h2>
-              <button
-                onClick={() => refetch()}
-                disabled={isLoading}
-                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-              >
-                {isLoading ? "Loading..." : "Refresh"}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => refetch()}
+                  disabled={isLoading}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? "Loading..." : "Refresh"}
+                </button>
+                <Popover.Root>
+                  <Popover.Trigger className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800">
+                    Create
+                  </Popover.Trigger>
+                  <Popover.Portal>
+                    <Popover.Positioner sideOffset={8}>
+                      <Popover.Popup className="border bg-white p-4 shadow w-80">
+                        <Popover.Title className="font-medium mb-2">
+                          Create New Site
+                        </Popover.Title>
+                        <Popover.Description className="text-sm text-gray-600 mb-3">
+                          Enter a name for your site.
+                        </Popover.Description>
+                        <Popover.Context>
+                          {(context: any) => (
+                            <form
+                              onSubmit={(e) =>
+                                handleCreateSite(e, () => context.close?.())
+                              }
+                              className="flex gap-2"
+                            >
+                              <input
+                                type="text"
+                                value={newSiteName}
+                                onChange={(e) => setNewSiteName(e.target.value)}
+                                placeholder="Enter site name"
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                                disabled={isCreating}
+                              />
+                              <button
+                                type="submit"
+                                disabled={isCreating || !newSiteName.trim()}
+                                className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                              >
+                                {isCreating ? "Creating..." : "Create"}
+                              </button>
+                            </form>
+                          )}
+                        </Popover.Context>
+                      </Popover.Popup>
+                    </Popover.Positioner>
+                  </Popover.Portal>
+                </Popover.Root>
+              </div>
             </div>
 
             {isLoading ? (
