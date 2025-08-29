@@ -5,10 +5,12 @@ import { useState } from "react";
 import { useSites } from "@/hooks/useSites";
 import { Popover } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { HourlyChart } from "@/components/HourlyChart";
 import type { Site } from "@/lib/api";
 
 export default function Home() {
   const [newSiteName, setNewSiteName] = useState("");
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const {
     sites,
     isLoading,
@@ -41,29 +43,15 @@ export default function Home() {
 
       <SignedIn>
         <div className="space-y-8">
-          {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold">My Sites</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your website analytics and tracking
-            </p>
-          </div>
-
-          {/* Create Site moved to Popover in header below */}
-
-          {/* Error Display */}
           {(error || createError) && (
             <div className="bg-red-50 border-[1.5px] border-red-200 text-red-700 px-4 py-3">
               <strong>Error:</strong> {error?.message || createError?.message}
             </div>
           )}
 
-          {/* Sites List */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">
-                Your Sites ({sites.length})
-              </h2>
+              <h2 className="text-xl font-semibold">Your Sites</h2>
               <div className="flex items-center gap-2">
                 <Button.Root
                   onClick={() => refetch()}
@@ -129,27 +117,47 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {sites.map((site: Site) => (
-                  <div
-                    key={site.id}
-                    className="bg-white border-[1.5px] border-black p-4"
-                  >
-                    <div className="flex flex-row gap-1 justify-between items-center">
-                      <h3 className="font-semibold text-lg ">
-                        {site.name} ({site.identifier})
-                      </h3>
-                      <div>
-                        <span className="font-medium">Created:</span>{" "}
-                        {new Date(site.created_at).toLocaleDateString()}
+              <div className="space-y-6">
+                {/* Sites Grid */}
+                <div className="grid gap-4">
+                  {sites.map((site: Site) => (
+                    <div
+                      key={site.id}
+                      className={`bg-white border-[1.5px] p-4 cursor-pointer transition-colors ${
+                        selectedSite?.id === site.id
+                          ? "border-black bg-gray-50"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      onClick={() => setSelectedSite(selectedSite?.id === site.id ? null : site)}
+                    >
+                      <div className="flex flex-row gap-1 justify-between items-center">
+                        <h3 className="font-semibold text-lg">
+                          {site.name} ({site.identifier})
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Page Views:</span>{" "}
+                            {site.pageview_count}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Created:</span>{" "}
+                            {new Date(site.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {selectedSite?.id === site.id ? "Click to hide analytics" : "Click to view analytics"}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm text-gray-600">
-                      <span className="font-medium">Page Views:</span>{" "}
-                      {site.pageview_count}
-                    </div>
+                  ))}
+                </div>
+
+                {/* Analytics Chart */}
+                {selectedSite && (
+                  <div className="mt-6">
+                    <HourlyChart site={selectedSite} />
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>

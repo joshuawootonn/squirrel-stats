@@ -7,6 +7,21 @@ interface Site {
   pageview_count: number;
 }
 
+interface HourlyData {
+  hour: string;
+  hour_display: string;
+  pageviews: number;
+  unique_sessions: number;
+}
+
+interface ChartsResponse {
+  hours: HourlyData[];
+  total_pageviews: number;
+  total_unique_sessions: number;
+  range: string;
+  timezone_offset?: number;
+}
+
 interface SitesResponse {
   count: number;
   results: Site[];
@@ -51,4 +66,39 @@ export async function createSite(token: string, name: string): Promise<Site> {
   return response.json();
 }
 
-export type { Site };
+/**
+ * Fetch hourly pageview data for charts
+ */
+export async function fetchChartsData(
+  token: string,
+  siteId: string,
+  range: "today" | "yesterday" | "7d" | "30d" = "today",
+  timezoneOffset?: number
+): Promise<ChartsResponse> {
+  const params = new URLSearchParams({
+    site_id: siteId,
+    range,
+  });
+
+  if (timezoneOffset !== undefined) {
+    params.append("timezone_offset", timezoneOffset.toString());
+  }
+
+  const response = await fetch(`${API_BASE_URL}/chart?${params}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}
+
+export type { Site, HourlyData, ChartsResponse };
