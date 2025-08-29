@@ -15,11 +15,7 @@ logger = logging.getLogger(__name__)
 def get_client_ip(request):
     """Get the client's IP address from the request."""
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        # Take the first IP in the chain
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR", "")
+    ip = x_forwarded_for.split(",")[0].strip() if x_forwarded_for else request.META.get("REMOTE_ADDR", "")
     return ip
 
 
@@ -79,7 +75,7 @@ def track_pageview(request):
         # Prefer query string values; merge POST body for beacon/form clients
         params = request.GET.copy()
         if request.method == "POST":
-            for key in request.POST.keys():
+            for key in request.POST:
                 if key not in params:
                     params[key] = request.POST.get(key)
 

@@ -92,7 +92,7 @@ class ClerkAuthentication(authentication.BaseAuthentication):
 
         except Exception as e:
             logger.error(f"Authentication failed: {e}")
-            raise exceptions.AuthenticationFailed("Invalid authentication token")
+            raise exceptions.AuthenticationFailed("Invalid authentication token") from e
 
     def authenticate_header(self, request):
         """

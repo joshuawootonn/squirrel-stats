@@ -7,13 +7,14 @@ suitable for rendering charts and graphs.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
-from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import (
+    api_view,
+    authentication_classes,
+    permission_classes,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -123,11 +124,7 @@ def _calculate_time_range(time_range: str, timezone_offset: int = None) -> tuple
     now = timezone.now()
 
     # If timezone offset is provided, adjust the "now" to client timezone for day calculations
-    if timezone_offset is not None:
-        # Convert offset from minutes to timedelta
-        client_now = now - timedelta(minutes=timezone_offset)
-    else:
-        client_now = now
+    client_now = now - timedelta(minutes=timezone_offset) if timezone_offset is not None else now
 
     if time_range == "today":
         # Start of today in client timezone, converted back to UTC
@@ -173,7 +170,7 @@ def _calculate_time_range(time_range: str, timezone_offset: int = None) -> tuple
 
 def _get_hourly_data(
     site: Site, start_time: datetime, end_time: datetime, timezone_offset: int = None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Get hourly pageview data for the specified time range.
 
@@ -224,4 +221,19 @@ def _get_hourly_data(
 
 def _truncate_to_hour(dt: datetime) -> datetime:
     """Truncate datetime to the beginning of the hour."""
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
+    return dt.replace(minute=0, second=0, microsecond=0)
     return dt.replace(minute=0, second=0, microsecond=0)

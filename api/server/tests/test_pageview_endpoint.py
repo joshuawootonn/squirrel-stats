@@ -11,6 +11,7 @@ These tests verify the behavior of the page view tracking endpoint including:
 import json
 
 from django.test import Client, TestCase, TransactionTestCase
+
 from server.models import PageView, Site
 
 

@@ -35,10 +35,7 @@ class UserAgentParsingTests(TestCase):
                 "expected_device": "desktop",
             },
             {
-                "ua": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) "
-                    "Gecko/20100101 Firefox/89.0"
-                ),
+                "ua": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) " "Gecko/20100101 Firefox/89.0"),
                 "expected_browser": "Firefox",
                 "expected_os": "Windows",
                 "expected_device": "desktop",
@@ -111,9 +108,7 @@ class UserAgentParsingTests(TestCase):
             )
 
             # Then
-            pv = PageView.objects.filter(
-                path=f"/mobile-{test_case['expected_os']}"
-            ).first()
+            pv = PageView.objects.filter(path=f"/mobile-{test_case['expected_os']}").first()
             self.assertIsNotNone(pv)
             self.assertEqual(pv.device_type, test_case["expected_device"])
             self.assertIn(test_case["expected_browser"], pv.browser)
@@ -148,18 +143,9 @@ class UserAgentParsingTests(TestCase):
         """When: Bot user agent is used, Then: It marks device type as bot"""
         # Given
         bot_user_agents = [
-            (
-                "Mozilla/5.0 (compatible; Googlebot/2.1; "
-                "+http://www.google.com/bot.html)"
-            ),
-            (
-                "Mozilla/5.0 (compatible; bingbot/2.0; "
-                "+http://www.bing.com/bingbot.htm)"
-            ),
-            (
-                "facebookexternalhit/1.1 "
-                "(+http://www.facebook.com/externalhit_uatext.php)"
-            ),
+            ("Mozilla/5.0 (compatible; Googlebot/2.1; " "+http://www.google.com/bot.html)"),
+            ("Mozilla/5.0 (compatible; bingbot/2.0; " "+http://www.bing.com/bingbot.htm)"),
+            ("facebookexternalhit/1.1 " "(+http://www.facebook.com/externalhit_uatext.php)"),
             ("Mozilla/5.0 (compatible; AhrefsBot/7.0; " "+http://ahrefs.com/robot/)"),
         ]
 
@@ -176,7 +162,5 @@ class UserAgentParsingTests(TestCase):
             )
 
         # Then
-        bot_views = PageView.objects.filter(
-            site=self.site, device_type="bot", path="/bot-test"
-        )
+        bot_views = PageView.objects.filter(site=self.site, device_type="bot", path="/bot-test")
         self.assertEqual(bot_views.count(), 4)

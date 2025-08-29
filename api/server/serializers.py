@@ -27,14 +27,12 @@ class SiteSerializer(serializers.ModelSerializer):
         Validate that the user hasn't exceeded the site limit.
         """
         request = self.context.get("request")
-        if request and hasattr(request, "account"):
-            # For create operations, check site limit
-            if self.instance is None:  # This is a create operation
-                from .models import Site
+        if request and hasattr(request, "account") and self.instance is None:
+            from .models import Site
 
-                site_count = Site.objects.filter(owner=request.account).count()
-                if site_count >= 50:
-                    raise serializers.ValidationError("Site limit reached. Maximum 50 sites allowed.")
+            site_count = Site.objects.filter(owner=request.account).count()
+            if site_count >= 50:
+                raise serializers.ValidationError("Site limit reached. Maximum 50 sites allowed.")
         return attrs
 
     def create(self, validated_data):
