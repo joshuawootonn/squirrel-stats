@@ -9,6 +9,15 @@ servers:
   web:
     hosts:
       - 5.161.248.77
+  workers:
+    hosts:
+      - 5.161.248.77
+    cmd: ./scripts/start_workers.sh
+    options:
+      health-cmd: "exit 0"
+      health-interval: "30s"
+      health-timeout: "5s"
+      health-retries: 1
 
 volumes:
   - "/var/lib/squirrel-stats/data:/app/data"
@@ -28,10 +37,21 @@ builder:
   arch: amd64
   context: .
 
+# Accessories (Redis)
+accessories:
+  redis:
+    image: redis:7-alpine
+    host: 5.161.248.77
+    port: 6379
+    volumes:
+      - /var/lib/squirrel-stats/redis:/data
+    cmd: redis-server --appendonly yes
+
 # Environment variables
 env:
   clear:
     DJANGO_SETTINGS_MODULE: api.settings_prod
+    REDIS_URL: redis://5.161.248.77:6379/0
   secret:
     - SECRET_KEY
     - CLERK_SECRET_KEY

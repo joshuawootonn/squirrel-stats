@@ -739,3 +739,60 @@ class PageView(models.Model):
             self.referrer_domain = parsed.netloc
 
         super().save(*args, **kwargs)
+
+
+class HourlyPageViewStats(models.Model):
+    """
+    Hourly aggregated statistics for page views by site.
+    Updated via batch processing to provide fast analytics queries.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="Unique identifier for the hourly stats record",
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name="hourly_stats",
+        help_text="The site these stats belong to",
+    )
+
+    # Time bucket (UTC hour)
+    hour_bucket = models.DateTimeField(
+        db_index=True,
+        help_text="UTC hour bucket (e.g., 2024-01-15 14:00:00+00:00 for 2-3 PM UTC)",
+    )
+
+    # Aggregated metrics
+    pageview_count = models.IntegerField(
+        default=0,
+        help_text="Total page views in this hour",
+    )
+    unique_session_count = models.IntegerField(
+        default=0,
+        help_text="Number of unique sessions that had page views in this hour",
+    )
+
+    # Processing metadata
+    last_processed_pageview_id = models.UUIDField(
+        null=True,
+        blank=True,
+        help_text="ID of the last pageview that was processed into this aggregation",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-hour_bucket"]
+        unique_together = ["site", "hour_bucket"]
+        indexes = [
+            models.Index(fields=["site", "hour_bucket"]),
+            models.Index(fields=["hour_bucket"]),
+        ]
+        db_table = "server_hourly_pageviews"
+
+    def __str__(self):
+        return f"{self.site.identifier}: {self.hour_bucket} ({self.pageview_count} views)"

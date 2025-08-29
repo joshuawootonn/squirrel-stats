@@ -11,11 +11,80 @@ services:
       - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
       - CLERK_FRONTEND_API=${CLERK_FRONTEND_API:-https://api.clerk.com}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
+      - REDIS_URL=redis://redis:6379/0
     volumes:
       - .:/app
       - /app/__pycache__
       - sqlite_data:/app/data
     command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  worker:
+    build: .
+    environment:
+      - DEBUG=1
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_FRONTEND_API=${CLERK_FRONTEND_API:-https://api.clerk.com}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - sqlite_data:/app/data
+    command: rq worker aggregations --url redis://redis:6379/0
+    depends_on:
+      - redis
+
+  scheduler:
+    build: .
+    environment:
+      - DEBUG=1
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_FRONTEND_API=${CLERK_FRONTEND_API:-https://api.clerk.com}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - sqlite_data:/app/data
+    command: >
+      sh -c "
+        while true; do
+          python manage.py queue_current_hour
+          sleep 60
+        done
+      "
+    depends_on:
+      - redis
+
+  workers:
+    build: .
+    environment:
+      - DEBUG=1
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - CLERK_PUBLISHABLE_KEY=${CLERK_PUBLISHABLE_KEY}
+      - CLERK_FRONTEND_API=${CLERK_FRONTEND_API:-https://api.clerk.com}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/app
+      - /app/__pycache__
+      - sqlite_data:/app/data
+    command: ./scripts/start_workers.sh
+    depends_on:
+      - redis
 
 volumes:
   sqlite_data:
+  redis_data:
