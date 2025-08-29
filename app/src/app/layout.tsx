@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,19 +33,7 @@ export default function RootLayout({
         >
           <div className="isolate">
             <Providers>
-              <header className="flex justify-end items-center p-4 gap-4 h-16 border-b border-gray-200">
-                <SignedOut>
-                  <SignInButton />
-                  <SignUpButton>
-                    <Button.Root className="h-10 px-4">
-                      <Button.Text>Sign Up</Button.Text>
-                    </Button.Root>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
-              </header>
+              <Header />
               {children}
             </Providers>
           </div>
