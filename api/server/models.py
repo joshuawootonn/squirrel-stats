@@ -796,3 +796,60 @@ class HourlyPageViewStats(models.Model):
 
     def __str__(self):
         return f"{self.site.identifier}: {self.hour_bucket} ({self.pageview_count} views)"
+
+
+class DailyPageViewStats(models.Model):
+    """
+    Daily aggregated statistics for page views by site.
+    Updated via batch processing to provide fast analytics queries.
+    """
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="Unique identifier for the daily stats record",
+    )
+    site = models.ForeignKey(
+        Site,
+        on_delete=models.CASCADE,
+        related_name="daily_stats",
+        help_text="The site these stats belong to",
+    )
+
+    # Time bucket (UTC day)
+    day_bucket = models.DateField(
+        db_index=True,
+        help_text="UTC day bucket (e.g., 2024-01-15 for January 15th, 2024)",
+    )
+
+    # Aggregated metrics
+    pageview_count = models.IntegerField(
+        default=0,
+        help_text="Total page views in this day",
+    )
+    unique_session_count = models.IntegerField(
+        default=0,
+        help_text="Number of unique sessions that had page views in this day",
+    )
+
+    # Processing metadata
+    last_processed_pageview_id = models.UUIDField(
+        null=True,
+        blank=True,
+        help_text="ID of the last pageview that was processed into this aggregation",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-day_bucket"]
+        unique_together = ["site", "day_bucket"]
+        indexes = [
+            models.Index(fields=["site", "day_bucket"]),
+            models.Index(fields=["day_bucket"]),
+        ]
+        db_table = "server_daily_pageviews"
+
+    def __str__(self):
+        return f"{self.site.identifier}: {self.day_bucket} ({self.pageview_count} views)"

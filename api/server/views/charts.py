@@ -19,7 +19,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from server.auth.authentication import ClerkAuthentication
-from server.models import HourlyPageViewStats, Site
+from server.models import DailyPageViewStats, HourlyPageViewStats, Site
 
 logger = logging.getLogger(__name__)
 
@@ -29,19 +29,20 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAuthenticated])
 def chart_data(request):
     """
-    Get hourly pageview data for chart.
+    Get pageview data for chart (hourly or daily based on range).
 
     Query Parameters:
     - site_id: Site UUID (required)
-    - range: Time range - 'today', 'yesterday', '7d', '30d' (default: 'today')
+    - range: Time range - 'today', 'yesterday', 'last_7_days', 'last_30_days', 'this_month', 'last_month' (default: 'today')
     - timezone_offset: Client timezone offset in minutes from UTC (optional)
 
     Returns:
+    For hourly data (today, yesterday):
     {
         "hours": [
             {
                 "hour": "2024-01-15T14:00:00Z",
-                "hour_display": "2:00 PM",  // Adjusted for timezone if provided
+                "hour_display": "2:00 PM",
                 "pageviews": 42,
                 "unique_sessions": 15
             },
@@ -50,7 +51,24 @@ def chart_data(request):
         "total_pageviews": 150,
         "total_unique_sessions": 45,
         "range": "today",
-        "timezone_offset": -480  // If provided
+        "data_type": "hourly"
+    }
+
+    For daily data (last_7_days, last_30_days, this_month, last_month):
+    {
+        "days": [
+            {
+                "day": "2024-01-15",
+                "day_display": "Jan 15",
+                "pageviews": 142,
+                "unique_sessions": 65
+            },
+            ...
+        ],
+        "total_pageviews": 1500,
+        "total_unique_sessions": 450,
+        "range": "last_30_days",
+        "data_type": "daily"
     }
     """
     try:
@@ -73,7 +91,7 @@ def chart_data(request):
             return Response({"error": "site_id parameter is required"}, status=400)
 
         # Validate time range
-        valid_ranges = ["today", "yesterday", "7d", "30d"]
+        valid_ranges = ["today", "yesterday", "last_7_days", "last_30_days", "this_month", "last_month"]
         if time_range not in valid_ranges:
             return Response({"error": f"Invalid range. Must be one of: {', '.join(valid_ranges)}"}, status=400)
 
@@ -83,22 +101,43 @@ def chart_data(request):
         except Site.DoesNotExist:
             return Response({"error": "Site not found or access denied"}, status=404)
 
-        # Calculate time range
-        start_time, end_time = _calculate_time_range(time_range, timezone_offset)
+        # Determine if we need hourly or daily data
+        hourly_ranges = ["today", "yesterday"]
+        daily_ranges = ["last_7_days", "last_30_days", "this_month", "last_month"]
 
-        # Get hourly stats
-        hourly_data = _get_hourly_data(site, start_time, end_time, timezone_offset)
+        if time_range in hourly_ranges:
+            # Get hourly data
+            start_time, end_time = _calculate_time_range(time_range, timezone_offset)
+            hourly_data = _get_hourly_data(site, start_time, end_time, timezone_offset)
 
-        # Calculate totals
-        total_pageviews = sum(hour["pageviews"] for hour in hourly_data)
-        total_unique_sessions = sum(hour["unique_sessions"] for hour in hourly_data)
+            # Calculate totals
+            total_pageviews = sum(hour["pageviews"] for hour in hourly_data)
+            total_unique_sessions = sum(hour["unique_sessions"] for hour in hourly_data)
 
-        response_data = {
-            "hours": hourly_data,
-            "total_pageviews": total_pageviews,
-            "total_unique_sessions": total_unique_sessions,
-            "range": time_range,
-        }
+            response_data = {
+                "hours": hourly_data,
+                "total_pageviews": total_pageviews,
+                "total_unique_sessions": total_unique_sessions,
+                "range": time_range,
+                "data_type": "hourly",
+            }
+
+        elif time_range in daily_ranges:
+            # Get daily data
+            start_date, end_date = _calculate_daily_range(time_range, timezone_offset)
+            daily_data = _get_daily_data(site, start_date, end_date, timezone_offset)
+
+            # Calculate totals
+            total_pageviews = sum(day["pageviews"] for day in daily_data)
+            total_unique_sessions = sum(day["unique_sessions"] for day in daily_data)
+
+            response_data = {
+                "days": daily_data,
+                "total_pageviews": total_pageviews,
+                "total_unique_sessions": total_unique_sessions,
+                "range": time_range,
+                "data_type": "daily",
+            }
 
         if timezone_offset is not None:
             response_data["timezone_offset"] = timezone_offset
@@ -222,18 +261,91 @@ def _get_hourly_data(
 def _truncate_to_hour(dt: datetime) -> datetime:
     """Truncate datetime to the beginning of the hour."""
     return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
-    return dt.replace(minute=0, second=0, microsecond=0)
+
+
+def _calculate_daily_range(time_range: str, timezone_offset: int = None) -> tuple[datetime.date, datetime.date]:
+    """
+    Calculate start and end dates for the new range options.
+
+    Args:
+        time_range: One of 'last_7_days', 'last_30_days', 'this_month', 'last_month'
+        timezone_offset: Client timezone offset in minutes from UTC
+
+    Returns:
+        tuple: (start_date, end_date) as date objects
+    """
+    now = timezone.now()
+
+    # If timezone offset is provided, adjust the "now" to client timezone for day calculations
+    client_now = now - timedelta(minutes=timezone_offset) if timezone_offset is not None else now
+
+    if time_range == "last_7_days":
+        # Last 7 days (including today)
+        start_date = client_now.date() - timedelta(days=6)
+        end_date = client_now.date()
+    elif time_range == "last_30_days":
+        # Last 30 days (including today)
+        start_date = client_now.date() - timedelta(days=29)
+        end_date = client_now.date()
+    elif time_range == "this_month":
+        # From the 1st of current month to today
+        start_date = client_now.date().replace(day=1)
+        end_date = client_now.date()
+    elif time_range == "last_month":
+        # The entire previous month
+        # Get first day of current month, then go back one day to get last day of previous month
+        first_of_current_month = client_now.date().replace(day=1)
+        last_day_of_previous_month = first_of_current_month - timedelta(days=1)
+        # Get first day of previous month
+        start_date = last_day_of_previous_month.replace(day=1)
+        end_date = last_day_of_previous_month
+    else:
+        raise ValueError(f"Invalid time range: {time_range}")
+
+    return start_date, end_date
+
+
+def _get_daily_data(
+    site: Site, start_date: datetime.date, end_date: datetime.date, timezone_offset: int = None
+) -> list[dict[str, Any]]:
+    """
+    Get daily pageview data for the specified date range.
+
+    Args:
+        site: Site object
+        start_date: Start date
+        end_date: End date
+        timezone_offset: Client timezone offset in minutes from UTC
+
+    Returns:
+        List of daily data dictionaries
+    """
+    # Query daily stats
+    daily_stats = DailyPageViewStats.objects.filter(
+        site=site,
+        day_bucket__gte=start_date,
+        day_bucket__lte=end_date,
+    ).order_by("day_bucket")
+
+    # Create a mapping of day buckets to stats
+    stats_by_day = {stats.day_bucket: stats for stats in daily_stats}
+
+    # Generate all days in the range, filling in missing data with zeros
+    daily_data = []
+    current_date = start_date
+
+    while current_date <= end_date:
+        stats = stats_by_day.get(current_date)
+
+        # Format day for display
+        day_data = {
+            "day": current_date.isoformat(),
+            "day_display": current_date.strftime("%b %d"),  # e.g., "Jan 15"
+            "pageviews": stats.pageview_count if stats else 0,
+            "unique_sessions": stats.unique_session_count if stats else 0,
+        }
+
+        daily_data.append(day_data)
+        current_date += timedelta(days=1)
+
+    return daily_data
