@@ -4,7 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { fetchChartsData, type ChartsResponse } from "@/lib/api";
 
-type TimeRange = "today" | "yesterday" | "7d" | "30d";
+type TimeRange =
+  | "today"
+  | "yesterday"
+  | "last_7_days"
+  | "last_30_days"
+  | "this_month"
+  | "last_month";
 
 interface UseChartsDataOptions {
   siteId: string;
@@ -23,7 +29,7 @@ interface UseChartsDataReturn {
 }
 
 /**
- * Hook for fetching and managing hourly charts data
+ * Hook for fetching and managing charts data (both hourly and daily)
  */
 export function useChartsData({
   siteId,
@@ -52,10 +58,16 @@ export function useChartsData({
       // Get client timezone offset
       const timezoneOffset = new Date().getTimezoneOffset();
 
-      const result = await fetchChartsData(token, siteId, currentRange, timezoneOffset);
+      const result = await fetchChartsData(
+        token,
+        siteId,
+        currentRange,
+        timezoneOffset
+      );
       setData(result);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error("Failed to fetch charts data");
+      const error =
+        err instanceof Error ? err : new Error("Failed to fetch charts data");
       setError(error);
       console.error("Error fetching charts data:", error);
     } finally {
@@ -68,16 +80,21 @@ export function useChartsData({
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh functionality
+  // Auto-refresh functionality - adjust interval based on data type
   useEffect(() => {
     if (!autoRefresh || !siteId) return;
 
+    // For hourly data (today/yesterday), refresh more frequently
+    // For daily data, refresh less frequently since it changes less often
+    const isHourlyRange = currentRange === "today" || currentRange === "yesterday";
+    const actualRefreshInterval = isHourlyRange ? refreshInterval : refreshInterval * 5; // 5x less frequent for daily
+
     const interval = setInterval(() => {
       fetchData();
-    }, refreshInterval);
+    }, actualRefreshInterval);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, refreshInterval, fetchData, siteId]);
+  }, [autoRefresh, refreshInterval, fetchData, siteId, currentRange]);
 
   const setRange = useCallback((newRange: TimeRange) => {
     setCurrentRange(newRange);
@@ -96,5 +113,3 @@ export function useChartsData({
     currentRange,
   };
 }
-
-

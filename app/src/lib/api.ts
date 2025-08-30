@@ -14,13 +14,32 @@ interface HourlyData {
   unique_sessions: number;
 }
 
-interface ChartsResponse {
+interface DailyData {
+  day: string;
+  day_display: string;
+  pageviews: number;
+  unique_sessions: number;
+}
+
+interface HourlyChartsResponse {
   hours: HourlyData[];
   total_pageviews: number;
   total_unique_sessions: number;
   range: string;
+  data_type: "hourly";
   timezone_offset?: number;
 }
+
+interface DailyChartsResponse {
+  days: DailyData[];
+  total_pageviews: number;
+  total_unique_sessions: number;
+  range: string;
+  data_type: "daily";
+  timezone_offset?: number;
+}
+
+type ChartsResponse = HourlyChartsResponse | DailyChartsResponse;
 
 interface SitesResponse {
   count: number;
@@ -72,7 +91,7 @@ export async function createSite(token: string, name: string): Promise<Site> {
 export async function fetchChartsData(
   token: string,
   siteId: string,
-  range: "today" | "yesterday" | "7d" | "30d" = "today",
+  range: "today" | "yesterday" | "last_7_days" | "last_30_days" | "this_month" | "last_month" = "today",
   timezoneOffset?: number
 ): Promise<ChartsResponse> {
   const params = new URLSearchParams({
@@ -101,4 +120,4 @@ export async function fetchChartsData(
   return response.json();
 }
 
-export type { Site, HourlyData, ChartsResponse };
+export type { Site, HourlyData, DailyData, ChartsResponse, HourlyChartsResponse, DailyChartsResponse };
