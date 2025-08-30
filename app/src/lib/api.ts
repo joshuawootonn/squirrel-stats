@@ -91,7 +91,13 @@ export async function createSite(token: string, name: string): Promise<Site> {
 export async function fetchChartsData(
   token: string,
   siteId: string,
-  range: "today" | "yesterday" | "last_7_days" | "last_30_days" | "this_month" | "last_month" = "today",
+  range:
+    | "today"
+    | "yesterday"
+    | "last_7_days"
+    | "last_30_days"
+    | "this_month"
+    | "last_month" = "today",
   timezoneOffset?: number
 ): Promise<ChartsResponse> {
   const params = new URLSearchParams({
@@ -120,4 +126,11 @@ export async function fetchChartsData(
   return response.json();
 }
 
-export type { Site, HourlyData, DailyData, ChartsResponse, HourlyChartsResponse, DailyChartsResponse };
+export type {
+  Site,
+  HourlyData,
+  DailyData,
+  ChartsResponse,
+  HourlyChartsResponse,
+  DailyChartsResponse,
+};

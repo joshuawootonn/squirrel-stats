@@ -86,8 +86,11 @@ export function useChartsData({
 
     // For hourly data (today/yesterday), refresh more frequently
     // For daily data, refresh less frequently since it changes less often
-    const isHourlyRange = currentRange === "today" || currentRange === "yesterday";
-    const actualRefreshInterval = isHourlyRange ? refreshInterval : refreshInterval * 5; // 5x less frequent for daily
+    const isHourlyRange =
+      currentRange === "today" || currentRange === "yesterday";
+    const actualRefreshInterval = isHourlyRange
+      ? refreshInterval
+      : refreshInterval * 5; // 5x less frequent for daily
 
     const interval = setInterval(() => {
       fetchData();

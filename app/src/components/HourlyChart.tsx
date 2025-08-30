@@ -26,7 +26,11 @@ interface AnalyticsChartProps {
   className?: string;
 }
 
-const TIME_RANGE_OPTIONS: { value: TimeRange; label: string; dataType: "hourly" | "daily" }[] = [
+const TIME_RANGE_OPTIONS: {
+  value: TimeRange;
+  label: string;
+  dataType: "hourly" | "daily";
+}[] = [
   { value: "today", label: "Today", dataType: "hourly" },
   { value: "yesterday", label: "Yesterday", dataType: "hourly" },
   { value: "last_7_days", label: "Last 7 Days", dataType: "daily" },
@@ -41,8 +45,9 @@ const TIME_RANGE_OPTIONS: { value: TimeRange; label: string; dataType: "hourly" 
 function ChartTooltip({ active, payload, label, dataType }: any) {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const displayLabel = dataType === "hourly" ? data.hour_display : data.day_display;
-    
+    const displayLabel =
+      dataType === "hourly" ? data.hour_display : data.day_display;
+
     return (
       <div className="bg-white border-[1.5px] border-gray-300 p-3 shadow-lg">
         <p className="font-medium text-gray-900">{displayLabel}</p>
@@ -78,7 +83,9 @@ export function AnalyticsChart({ site, className }: AnalyticsChartProps) {
   };
 
   // Get current data type and chart data
-  const currentOption = TIME_RANGE_OPTIONS.find(opt => opt.value === currentRange);
+  const currentOption = TIME_RANGE_OPTIONS.find(
+    (opt) => opt.value === currentRange
+  );
   const isHourlyData = data?.data_type === "hourly";
   const chartData = isHourlyData ? (data as any)?.hours : (data as any)?.days;
   const xAxisKey = isHourlyData ? "hour_display" : "day_display";
