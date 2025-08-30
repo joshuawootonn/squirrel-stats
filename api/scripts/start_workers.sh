@@ -16,5 +16,17 @@ while true; do
     sleep 3600
 done &
 
+# Start current day scheduler (every hour - to catch new data throughout the day)
+while true; do
+    python manage.py queue_current_day
+    sleep 300
+done &
+
+# Start daily backfill scheduler (every 6 hours - to catch any missing days)
+while true; do
+    python manage.py queue_backfill_missing_days --days=7
+    sleep 21600
+done &
+
 # Wait for all background processes
 wait
