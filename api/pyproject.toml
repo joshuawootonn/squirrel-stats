@@ -39,7 +39,10 @@ select = [
 # Ignore specific rules (equivalent to .flake8 extend-ignore)
 ignore = [
     "E501",  # line too long (handled by formatter)
+    "SIM108", # use ternary operator instead of if-else-block (prefer explicit if-else for readability)
 ]
+
+
 
 # Allow autofix for all enabled rules
 fixable = ["ALL"]
