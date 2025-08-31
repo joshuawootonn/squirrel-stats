@@ -100,6 +100,12 @@ def signup_view(request):
         # Create user - use email as username since Django requires a username
         user = User.objects.create_user(username=email, email=email, password=password)
 
+        # Set last_login to avoid NULL constraint issues
+        from django.utils import timezone
+
+        user.last_login = timezone.now()
+        user.save()
+
         # Log the user in
         login(request, user)
 
