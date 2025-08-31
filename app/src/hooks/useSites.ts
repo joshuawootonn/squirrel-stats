@@ -1,41 +1,29 @@
-import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createSite, fetchSites } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 
 export function useSites() {
-  const { getToken, isSignedIn } = useAuth();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   // Fetch sites using React Query
   const sitesQuery = useQuery({
     queryKey: ["sites"],
-    queryFn: async () => {
-      const token = await getToken();
-      if (!token) {
-        throw new Error("No authentication token");
-      }
-      return fetchSites(token);
-    },
-    enabled: false, // We'll enable it manually when signed in
+    queryFn: fetchSites,
+    enabled: false, // We'll enable it manually when authenticated
   });
 
-  // Auto-fetch when signed in
+  // Auto-fetch when authenticated
   useEffect(() => {
-    if (isSignedIn) {
+    if (isAuthenticated) {
       sitesQuery.refetch();
     }
-  }, [isSignedIn, sitesQuery]);
+  }, [isAuthenticated, sitesQuery]);
 
   // Create site mutation
   const createSiteMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const token = await getToken();
-      if (!token) {
-        throw new Error("No authentication token");
-      }
-      return createSite(token, name);
-    },
+    mutationFn: createSite,
     onSuccess: () => {
       // Invalidate and refetch sites
       queryClient.invalidateQueries({ queryKey: ["sites"] });

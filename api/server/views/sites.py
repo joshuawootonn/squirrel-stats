@@ -27,17 +27,17 @@ class SiteViewSet(viewsets.ModelViewSet):
         Filter sites to only show those owned by the authenticated user.
         Includes page view counts for each site.
         """
-        # Get the user_id from the request (set by ClerkAuthentication)
-        if hasattr(self.request, "user_id"):
-            return Site.objects.filter(user_id=self.request.user_id).annotate(pageview_count=Count("page_views"))
+        # Get the user from the request (set by BasicAuthentication)
+        if self.request.user.is_authenticated:
+            return Site.objects.filter(user=self.request.user).annotate(pageview_count=Count("page_views"))
         return Site.objects.none()
 
     def perform_create(self, serializer):
         """
-        Set the user_id to the authenticated user when creating a site.
+        Set the user to the authenticated user when creating a site.
         """
-        if hasattr(self.request, "user_id"):
-            serializer.save(user_id=self.request.user_id)
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
         else:
             raise ValueError("No authenticated user found")
 
@@ -46,8 +46,8 @@ class SiteViewSet(viewsets.ModelViewSet):
         Create a new site with validation for site limit.
         """
         # Check site limit
-        if hasattr(request, "user_id"):
-            site_count = Site.objects.filter(user_id=request.user_id).count()
+        if request.user.is_authenticated:
+            site_count = Site.objects.filter(user=request.user).count()
             if site_count >= 50:
                 return Response(
                     {"error": "Site limit reached. Maximum 50 sites allowed."},

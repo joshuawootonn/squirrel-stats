@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@/components/AuthProvider";
 import { fetchChartsData, type ChartsResponse } from "@/lib/api";
 
 type TimeRange =
@@ -37,7 +37,7 @@ export function useChartsData({
   autoRefresh = false,
   refreshInterval = 60000, // 1 minute default
 }: UseChartsDataOptions): UseChartsDataReturn {
-  const { getToken } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [data, setData] = useState<ChartsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -50,8 +50,7 @@ export function useChartsData({
       setIsLoading(true);
       setError(null);
 
-      const token = await getToken();
-      if (!token) {
+      if (!isAuthenticated) {
         throw new Error("Authentication required");
       }
 
@@ -59,7 +58,6 @@ export function useChartsData({
       const timezoneOffset = new Date().getTimezoneOffset();
 
       const result = await fetchChartsData(
-        token,
         siteId,
         currentRange,
         timezoneOffset
@@ -73,7 +71,7 @@ export function useChartsData({
     } finally {
       setIsLoading(false);
     }
-  }, [siteId, currentRange, getToken]);
+  }, [siteId, currentRange, isAuthenticated]);
 
   // Initial fetch and range changes
   useEffect(() => {

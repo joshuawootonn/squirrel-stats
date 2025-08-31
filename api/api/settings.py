@@ -140,11 +140,10 @@ REST_FRAMEWORK = {
     # Pagination
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 20,
-    # Authentication - using Clerk
+    # Authentication - using Django Session Auth (CSRF exempt for API)
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "server.auth.authentication.ClerkAuthentication",
+        "server.authentication.CsrfExemptSessionAuthentication",
     ],
-    # Permissions - require authentication by default
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
@@ -168,20 +167,16 @@ REST_FRAMEWORK = {
     },
 }
 
-# Clerk Configuration
-CLERK_SECRET_KEY = os.environ.get("CLERK_SECRET_KEY", "")
-CLERK_PUBLISHABLE_KEY = os.environ.get("CLERK_PUBLISHABLE_KEY", "")
+# Email Configuration (MailPace API)
+MAILPACE_API_KEY = os.environ.get("MAILPACE_API_KEY", "")
+MAILPACE_API_URL = "https://app.mailpace.com/api/v1/send"
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@yourdomain.com")
 
-# Clerk API URL (for fetching JWKS)
-CLERK_FRONTEND_API = os.environ.get("CLERK_FRONTEND_API", "https://api.clerk.com")
-
-# Initialize Clerk client
-if CLERK_SECRET_KEY:
-    from clerk_backend_api import Clerk
-
-    CLERK_CLIENT = Clerk(bearer_auth=CLERK_SECRET_KEY)
-else:
-    CLERK_CLIENT = None
+# Session Configuration
+SESSION_COOKIE_AGE = 86400 * 30  # 30 days
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
 
 # Frontend Configuration
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:7777")
@@ -190,10 +185,10 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:7777")
 # Single configurable frontend origin
 CORS_ALLOWED_ORIGINS = [FRONTEND_URL]
 
-# Allow credentials (for authentication)
+# Allow credentials (for session authentication)
 CORS_ALLOW_CREDENTIALS = True
 
-# Allow common headers
+# Allow CSRF token in headers
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -205,3 +200,37 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [FRONTEND_URL]
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = False  # Allow JS access to CSRF token
+
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",  # Change this to control overall level
+    },
+    "loggers": {
+        "server.views.auth": {
+            "handlers": ["console"],
+            "level": "DEBUG",  # Change this to control auth view logs
+            "propagate": False,
+        },
+    },
+}

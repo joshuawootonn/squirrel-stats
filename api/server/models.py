@@ -3,6 +3,7 @@ import random
 import string
 import uuid
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
@@ -18,10 +19,10 @@ class Site(models.Model):
         editable=False,
         help_text="Unique identifier for the site",
     )
-    user_id = models.CharField(
-        max_length=255,
-        db_index=True,
-        help_text="User ID of the site owner (from Clerk)",
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="User who owns this site",
     )
     name = models.CharField(max_length=255, help_text="The name of the site")
     identifier = models.CharField(

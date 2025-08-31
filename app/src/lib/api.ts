@@ -49,13 +49,138 @@ interface SitesResponse {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-export async function fetchSites(token: string): Promise<Site[]> {
-  const response = await fetch(`${API_BASE_URL}/sites/`, {
+interface AuthCredentials {
+  email: string;
+  password: string;
+}
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
+interface AuthResponse {
+  message: string;
+  user: User;
+}
+
+const fetchWithCredentials = (url: string, options: RequestInit = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: "include",
     headers: {
-      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...options.headers,
     },
   });
+};
+
+// Authentication API functions
+export async function signup(credentials: AuthCredentials): Promise<User> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/auth/signup`, {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+
+  const data: AuthResponse = await response.json();
+  return data.user;
+}
+
+export async function login(credentials: AuthCredentials): Promise<User> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+
+  const data: AuthResponse = await response.json();
+  return data.user;
+}
+
+export async function logout(): Promise<void> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/auth/logout`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await fetchWithCredentials(
+    `${API_BASE_URL}/auth/forgot-password`,
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+}
+
+export async function resetPassword(
+  uid: string,
+  token: string,
+  newPassword: string
+): Promise<void> {
+  const response = await fetchWithCredentials(
+    `${API_BASE_URL}/auth/reset-password`,
+    {
+      method: "POST",
+      body: JSON.stringify({ uid, token, new_password: newPassword }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const response = await fetchWithCredentials(`${API_BASE_URL}/auth/user`);
+
+    if (response.status === 401) {
+      return null; // Not authenticated
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.user;
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return null;
+  }
+}
+
+export async function fetchSites(): Promise<Site[]> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/sites/`);
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -65,13 +190,9 @@ export async function fetchSites(token: string): Promise<Site[]> {
   return data.results || [];
 }
 
-export async function createSite(token: string, name: string): Promise<Site> {
-  const response = await fetch(`${API_BASE_URL}/sites/`, {
+export async function createSite(name: string): Promise<Site> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/sites/`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ name: name.trim() }),
   });
 
@@ -89,7 +210,6 @@ export async function createSite(token: string, name: string): Promise<Site> {
  * Fetch hourly pageview data for charts
  */
 export async function fetchChartsData(
-  token: string,
   siteId: string,
   range:
     | "today"
@@ -109,12 +229,9 @@ export async function fetchChartsData(
     params.append("timezone_offset", timezoneOffset.toString());
   }
 
-  const response = await fetch(`${API_BASE_URL}/chart?${params}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetchWithCredentials(
+    `${API_BASE_URL}/chart?${params}`
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -133,4 +250,6 @@ export type {
   ChartsResponse,
   HourlyChartsResponse,
   DailyChartsResponse,
+  AuthCredentials,
+  User,
 };

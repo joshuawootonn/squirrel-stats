@@ -18,14 +18,14 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from server.auth.authentication import ClerkAuthentication
+from server.authentication import CsrfExemptSessionAuthentication
 from server.models import DailyPageViewStats, HourlyPageViewStats, Site
 
 logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
-@authentication_classes([ClerkAuthentication])
+@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([IsAuthenticated])
 def chart_data(request):
     """
@@ -72,8 +72,9 @@ def chart_data(request):
     }
     """
     try:
-        # Get user ID from authenticated request
-        user_id = request.user_id
+        # Get user from authenticated request
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=401)
 
         # Get parameters
         site_id = request.GET.get("site_id")
@@ -97,7 +98,7 @@ def chart_data(request):
 
         # Get the site and verify ownership
         try:
-            site = Site.objects.get(id=site_id, user_id=user_id)
+            site = Site.objects.get(id=site_id, user=request.user)
         except Site.DoesNotExist:
             return Response({"error": "Site not found or access denied"}, status=404)
 

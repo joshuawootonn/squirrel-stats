@@ -4,7 +4,6 @@ Middleware for handling Kamal-specific issues.
 
 import re
 
-from django.conf import settings
 from django.http import JsonResponse
 
 
@@ -46,14 +45,10 @@ class KamalHealthCheckMiddleware:
 
     def _handle_health_check(self):
         """Return a health check response."""
-        # Check if Clerk is configured (same logic as the original health check)
-        clerk_configured = bool(getattr(settings, "CLERK_SECRET_KEY", None) and getattr(settings, "CLERK_CLIENT", None))
-
         return JsonResponse(
             {
                 "status": "healthy",
                 "message": "Django REST Framework is configured and working!",
                 "version": "v1",
-                "clerk_configured": clerk_configured,
             }
         )
