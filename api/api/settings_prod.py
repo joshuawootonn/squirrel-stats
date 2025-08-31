@@ -4,6 +4,8 @@ Production settings for Django API
 
 import os
 
+import dj_database_url
+
 from .settings import *  # noqa: F403, F40
 from .settings import MIDDLEWARE
 
@@ -23,13 +25,13 @@ MIDDLEWARE = [
     "server.middleware.KamalHealthCheckMiddleware",
 ] + MIDDLEWARE
 
-# Database - SQLite for production (simple start)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "/app/data/db.sqlite3",
-    }
-}
+# Database - PostgreSQL for production
+# Production uses DATABASE_URL from hosted PostgreSQL service
+
+if not os.environ.get("DATABASE_URL"):
+    raise ValueError("DATABASE_URL environment variable is required in production")
+
+DATABASES = {"default": dj_database_url.parse(os.environ.get("DATABASE_URL"))}
 
 # Static files configuration for production
 STATIC_ROOT = "/app/staticfiles"
