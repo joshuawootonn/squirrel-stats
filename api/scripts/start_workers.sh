@@ -28,5 +28,11 @@ while true; do
     sleep 21600
 done &
 
+# 📊 Start queue health monitor (every 30 seconds)
+echo "📊 Starting queue health monitor..."
+while true; do
+    python manage.py monitor_queue_health
+    sleep 30
+done &
 # Wait for all background processes
 wait
