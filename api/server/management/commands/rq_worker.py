@@ -7,6 +7,8 @@ import sys
 
 from django.core.management.base import BaseCommand
 
+from otel_config import get_tracer
+
 # OpenTelemetry will be initialized by Django settings
 # Redis instrumentation should be done once globally
 
@@ -55,6 +57,10 @@ class Command(BaseCommand):
             redis_conn = redis.from_url(redis_url)
             queue = Queue(queue_name, connection=redis_conn)
             worker = Worker([queue], connection=redis_conn)
+            tracer = get_tracer()
+            with tracer.start_as_current_span("rq_worker") as span:
+                span.set_attribute("queue", queue_name)
+                span.set_attribute("redis_url", redis_url)
 
             self.stdout.write(self.style.SUCCESS(f"Starting RQ worker for queue '{queue_name}' on {redis_url}"))
 
