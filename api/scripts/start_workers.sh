@@ -2,7 +2,7 @@
 # Start RQ workers and schedulers for production
 
 # Start RQ worker in background
-python manage.py rq_worker --queue aggregations &
+# python manage.py rq_worker --queue aggregations &
 
 # Start current hour scheduler (every minute)
 while true; do
