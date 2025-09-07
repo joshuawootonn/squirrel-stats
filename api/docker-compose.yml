@@ -33,7 +33,10 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - MAILPACE_API_KEY=${MAILPACE_API_KEY:-}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@localhost}
-      - DATABASE_URL=postgresql://squirrel_stats:squirrel_stats_dev@postgres:5432/squirrel_stats
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
+      - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
+      - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
+      - AXIOM_DATASET=${AXIOM_DATASET:-server}
     volumes:
       - .:/app
       - /app/__pycache__
@@ -51,7 +54,10 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - MAILPACE_API_KEY=${MAILPACE_API_KEY:-}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@localhost}
-      - DATABASE_URL=postgresql://squirrel_stats:squirrel_stats_dev@postgres:5432/squirrel_stats
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
+      - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
+      - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
+      - AXIOM_DATASET=${AXIOM_DATASET:-server}
     volumes:
       - .:/app
       - /app/__pycache__
@@ -75,7 +81,11 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - MAILPACE_API_KEY=${MAILPACE_API_KEY:-}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@localhost}
-      - DATABASE_URL=postgresql://squirrel_stats:squirrel_stats_dev@postgres:5432/squirrel_stats
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
+      - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
+      - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
+      - AXIOM_SERVER_DATASET=${AXIOM_SERVER_DATASET:-server}
+      - AXIOM_QUEUE_DATASET=${AXIOM_QUEUE_DATASET:-queue-workers}
     volumes:
       - .:/app
       - /app/__pycache__

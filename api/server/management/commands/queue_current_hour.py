@@ -12,6 +12,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from otel_config import get_tracer
 from server.models import Site
 
 try:
@@ -26,32 +27,49 @@ except Exception:  # pragma: no cover
 
 
 def _enqueue_or_run(site_identifier: str, start, end):
-    if redis_conn and Queue:
-        q = Queue("aggregations", connection=redis_conn)
-        # Enqueue manage.py command through RQ (simple approach: call command in worker)
-        q.enqueue(
-            call_command,
-            "aggregate_hourly_stats",
-            "--site",
-            site_identifier,
-            "--start",
-            start.isoformat(),
-            "--end",
-            end.isoformat(),
-        )
-    else:
-        call_command("aggregate_hourly_stats", site=site_identifier, start=start.isoformat(), end=end.isoformat())
+    tracer = get_tracer()
+    with tracer.start_as_current_span("enqueue_hourly_aggregation") as span:
+        span.set_attribute("site.identifier", site_identifier)
+        span.set_attribute("aggregation.start", start.isoformat())
+        span.set_attribute("aggregation.end", end.isoformat())
+
+        if redis_conn and Queue:
+            span.set_attribute("execution.mode", "enqueued")
+            q = Queue("aggregations", connection=redis_conn)
+            # Enqueue manage.py command through RQ (simple approach: call command in worker)
+            q.enqueue(
+                call_command,
+                "aggregate_hourly_stats",
+                "--site",
+                site_identifier,
+                "--start",
+                start.isoformat(),
+                "--end",
+                end.isoformat(),
+            )
+        else:
+            span.set_attribute("execution.mode", "direct")
+            call_command("aggregate_hourly_stats", site=site_identifier, start=start.isoformat(), end=end.isoformat())
 
 
 class Command(BaseCommand):
     help = "Queue per-site aggregation for the current hour (run every minute)"
 
     def handle(self, *args, **options):
-        now = timezone.now()
-        current_hour_start = now.replace(minute=0, second=0, microsecond=0)
-        current_hour_end = current_hour_start + timedelta(hours=1)
+        tracer = get_tracer()
+        with tracer.start_as_current_span("queue_current_hour_command") as span:
+            now = timezone.now()
+            current_hour_start = now.replace(minute=0, second=0, microsecond=0)
+            current_hour_end = current_hour_start + timedelta(hours=1)
 
-        for site in Site.objects.all().only("identifier"):
-            _enqueue_or_run(site.identifier, current_hour_start, current_hour_end)
+            span.set_attribute("command.hour_start", current_hour_start.isoformat())
+            span.set_attribute("command.hour_end", current_hour_end.isoformat())
 
-        self.stdout.write(self.style.SUCCESS("Queued/processed current-hour aggregation for all sites"))
+            sites = Site.objects.all().only("identifier")
+            site_count = sites.count()
+            span.set_attribute("command.sites_count", site_count)
+
+            for site in sites:
+                _enqueue_or_run(site.identifier, current_hour_start, current_hour_end)
+
+            self.stdout.write(self.style.SUCCESS("Queued/processed current-hour aggregation for all sites"))

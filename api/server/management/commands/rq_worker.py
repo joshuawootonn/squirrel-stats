@@ -7,6 +7,9 @@ import sys
 
 from django.core.management.base import BaseCommand
 
+# OpenTelemetry will be initialized by Django settings
+# Redis instrumentation should be done once globally
+
 try:
     import redis
     from rq import Queue, Worker

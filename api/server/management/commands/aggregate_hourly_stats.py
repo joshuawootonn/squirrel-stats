@@ -19,6 +19,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from otel_config import get_tracer
 from server.models import HourlyPageViewStats, PageView, Site
 
 logger = logging.getLogger(__name__)
@@ -56,85 +57,101 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        hours_to_process = options["hours"]
-        start_str = options.get("start")
-        end_str = options.get("end")
-        site_identifier = options.get("site")
-        verbose = options.get("verbose", False)
+        tracer = get_tracer()
+        with tracer.start_as_current_span("aggregate_hourly_stats_command") as span:
+            hours_to_process = options["hours"]
+            start_str = options.get("start")
+            end_str = options.get("end")
+            site_identifier = options.get("site")
+            verbose = options.get("verbose", False)
 
-        if verbose:
-            logger.setLevel(logging.DEBUG)
+            # Set span attributes for observability
+            span.set_attribute("command.hours_to_process", hours_to_process)
+            if start_str:
+                span.set_attribute("command.start_str", start_str)
+            if end_str:
+                span.set_attribute("command.end_str", end_str)
+            if site_identifier:
+                span.set_attribute("command.site_identifier", site_identifier)
 
-        self.stdout.write(self.style.SUCCESS(f"Starting hourly aggregation for last {hours_to_process} hours..."))
+            if verbose:
+                logger.setLevel(logging.DEBUG)
 
-        # Calculate time range to process
-        if start_str or end_str:
-            # Parse explicit start/end if provided
-            try:
-                if start_str:
-                    start_time = datetime.fromisoformat(start_str)
-                    if start_time.tzinfo is None:
-                        start_time = timezone.make_aware(start_time, timezone.utc)
-                else:
-                    start_time = None
-                if end_str:
-                    end_time = datetime.fromisoformat(end_str)
-                    if end_time.tzinfo is None:
-                        end_time = timezone.make_aware(end_time, timezone.utc)
-                else:
-                    end_time = None
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Invalid --start/--end datetime: {e}"))
-                return
+            self.stdout.write(self.style.SUCCESS(f"Starting hourly aggregation for last {hours_to_process} hours..."))
 
-            # Defaults if only one bound provided
-            if start_time is None:
-                end_time = end_time or timezone.now()
-                start_time = end_time - timedelta(hours=hours_to_process)
-            if end_time is None:
-                start_time = start_time
-                end_time = start_time + timedelta(hours=hours_to_process)
-        else:
-            end_time = timezone.now()
-            start_time = end_time - timedelta(hours=hours_to_process)
-
-        # Get sites to process
-        sites_query = Site.objects.all()
-        if site_identifier:
-            try:
-                sites_query = sites_query.filter(identifier=site_identifier)
-                if not sites_query.exists():
-                    self.stdout.write(self.style.ERROR(f"Site '{site_identifier}' not found"))
+            # Calculate time range to process
+            if start_str or end_str:
+                # Parse explicit start/end if provided
+                try:
+                    if start_str:
+                        start_time = datetime.fromisoformat(start_str)
+                        if start_time.tzinfo is None:
+                            start_time = timezone.make_aware(start_time, timezone.utc)
+                    else:
+                        start_time = None
+                    if end_str:
+                        end_time = datetime.fromisoformat(end_str)
+                        if end_time.tzinfo is None:
+                            end_time = timezone.make_aware(end_time, timezone.utc)
+                    else:
+                        end_time = None
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"Invalid --start/--end datetime: {e}"))
                     return
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Error filtering sites: {e}"))
-                return
 
-        total_processed = 0
-        total_created = 0
-        total_updated = 0
+                # Defaults if only one bound provided
+                if start_time is None:
+                    end_time = end_time or timezone.now()
+                    start_time = end_time - timedelta(hours=hours_to_process)
+                if end_time is None:
+                    start_time = start_time
+                    end_time = start_time + timedelta(hours=hours_to_process)
+            else:
+                end_time = timezone.now()
+                start_time = end_time - timedelta(hours=hours_to_process)
 
-        for site in sites_query:
-            try:
-                created, updated, processed = self._process_site_hours(site, start_time, end_time, verbose)
-                total_created += created
-                total_updated += updated
-                total_processed += processed
+            # Get sites to process
+            sites_query = Site.objects.all()
+            if site_identifier:
+                try:
+                    sites_query = sites_query.filter(identifier=site_identifier)
+                    if not sites_query.exists():
+                        self.stdout.write(self.style.ERROR(f"Site '{site_identifier}' not found"))
+                        return
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"Error filtering sites: {e}"))
+                    return
 
-                if verbose:
-                    self.stdout.write(
-                        f"Site {site.identifier}: {created} created, {updated} updated, {processed} pageviews processed"
-                    )
+            total_processed = 0
+            total_created = 0
+            total_updated = 0
 
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f"Error processing site {site.identifier}: {e}"))
-                logger.exception(f"Error processing site {site.identifier}")
+            for site in sites_query:
+                try:
+                    created, updated, processed = self._process_site_hours(site, start_time, end_time, verbose)
+                    total_created += created
+                    total_updated += updated
+                    total_processed += processed
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Completed: {total_created} records created, {total_updated} updated, {total_processed} pageviews processed"
+                    if verbose:
+                        self.stdout.write(
+                            f"Site {site.identifier}: {created} created, {updated} updated, {processed} pageviews processed"
+                        )
+
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f"Error processing site {site.identifier}: {e}"))
+                    logger.exception(f"Error processing site {site.identifier}")
+
+            # Set final span attributes
+            span.set_attribute("command.total_created", total_created)
+            span.set_attribute("command.total_updated", total_updated)
+            span.set_attribute("command.total_processed", total_processed)
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Completed: {total_created} records created, {total_updated} updated, {total_processed} pageviews processed"
+                )
             )
-        )
 
     def _process_site_hours(
         self, site: Site, start_time: datetime, end_time: datetime, verbose: bool

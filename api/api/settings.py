@@ -15,6 +15,19 @@ from pathlib import Path
 
 import dj_database_url
 
+from otel_config import configure_server_telemetry
+
+# Initialize OpenTelemetry
+configure_server_telemetry()
+
+# Initialize Redis instrumentation globally (for RQ workers)
+try:
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+
+    RedisInstrumentor().instrument()
+except ImportError:
+    pass  # Redis instrumentation not available
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
