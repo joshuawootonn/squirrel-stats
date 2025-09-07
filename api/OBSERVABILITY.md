@@ -20,7 +20,6 @@ The setup includes:
 ### Service Names
 
 - **Server Service**: `server`
-- **Queue Workers Service**: `queue-workers`
 
 ### Axiom Configuration
 
@@ -86,14 +85,6 @@ The setup includes:
   - `pageview.created`
   - `pageview.error` (if any)
 
-### Queue Worker Traces (`queue-workers` dataset)
-
-- RQ job processing
-- Redis operations (automatic via Redis instrumentation)
-- Management command execution:
-  - `queue_current_hour_command` - Hourly job scheduling
-  - `aggregate_hourly_stats_command` - Data aggregation processing
-  - `enqueue_hourly_aggregation` - Individual site job enqueueing
 
 ### Trace Attributes
 

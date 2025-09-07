@@ -19,8 +19,8 @@ def configure_opentelemetry(service_name: str, dataset_name: str):
     Configure OpenTelemetry tracing for the given service.
 
     Args:
-        service_name: Name of the service (e.g., 'server', 'queue-workers')
-        dataset_name: Axiom dataset name (e.g., 'server', 'queue-workers')
+        service_name: Name of the service (e.g., 'server')
+        dataset_name: Axiom dataset name (e.g., 'server')
     """
     global _telemetry_configured
 
