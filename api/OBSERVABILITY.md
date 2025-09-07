@@ -190,19 +190,25 @@ _dataset == "server"
 
 ### Common Issues
 
-1. **Import Errors**: Ensure all OpenTelemetry packages are installed
+1. **"python: can't open file '/app/manage.py'" Error**:
+
+   - **Cause**: Running docker-compose from wrong directory
+   - **Fix**: Always run from the root directory: `cd api && docker-compose up`
+   - **Not**: `docker-compose -f api/docker-compose.yml up` from sub directory
+
+2. **Import Errors**: Ensure all OpenTelemetry packages are installed
 
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **No Traces in Axiom**: Check that:
+3. **No Traces in Axiom**: Check that:
 
-   - API token is correct in `otel_config.py`
+   - API token is correct in environment variables
    - Dataset names match your Axiom configuration
    - Network connectivity to `api.axiom.co`
 
-3. **Linting Errors**: The OpenTelemetry imports may show as unresolved until packages are installed
+4. **Linting Errors**: The OpenTelemetry imports may show as unresolved until packages are installed
 
 ### Testing Traces
 

@@ -1,5 +1,14 @@
 version: "3.8"
 
+# IMPORTANT: Run docker-compose commands from the /api directory (where this file is located)
+# The volume mounts (- .:/app) depend on the current working directory being /api
+#
+# Correct:   cd api && docker-compose up
+# Incorrect: docker-compose -f api/docker-compose.yml up
+#
+# If you see "python: can't open file '/app/manage.py'" errors, you're likely
+# running from the wrong directory!
+
 services:
   redis:
     image: redis:7-alpine
