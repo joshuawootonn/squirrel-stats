@@ -137,28 +137,26 @@ export $(xargs < .env.prod)
 
 ### Starting Services with Observability
 
-1. **Django Server**:
+**All-in-One Workers Service**:
 
-   ```bash
-   python manage.py runserver
-   ```
+```bash
+docker-compose up
+```
 
-   - Traces will appear in the `server` dataset
-   - HTTP requests automatically traced
-   - Custom pageview spans for `/track` endpoint
-
-2. **Queue Workers**:
-   ```bash
-   ./scripts/start_workers.sh
-   ```
-   - Traces will appear in the `queue-workers` dataset
-   - Job processing and Redis operations traced
-   - Management command execution traced
+- Single `workers` service runs everything:
+  - 1 RQ worker (processes jobs)
+  - 4 schedulers (queues jobs at different intervals)
+- All traces appear in the unified `server` dataset
+- Includes HTTP requests, job processing, Redis operations, and management commands
 
 ### Viewing Traces in Axiom
 
-1. **Server Traces**: Navigate to the `server` dataset in your Axiom dashboard
-2. **Worker Traces**: Navigate to the `queue-workers` dataset in your Axiom dashboard
+Navigate to the `server` dataset in your Axiom dashboard to see all traces:
+
+- HTTP requests and API calls
+- Background job processing
+- Queue scheduling operations
+- Database queries and Redis operations
 
 ### Useful Queries
 

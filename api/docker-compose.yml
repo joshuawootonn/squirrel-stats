@@ -34,54 +34,6 @@ services:
       timeout: 5s
       retries: 5
 
-  worker:
-    build: .
-    environment:
-      - DEBUG=1
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
-      - REDIS_URL=redis://redis:6379/0
-      - MAILPACE_API_KEY=${MAILPACE_API_KEY:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@localhost}
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
-      - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
-      - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
-      - AXIOM_DATASET=${AXIOM_DATASET:-server}
-    volumes:
-      - .:/app
-      - /app/__pycache__
-
-    command: rq worker aggregations --url redis://redis:6379/0
-    depends_on:
-      - redis
-      - postgres
-
-  scheduler:
-    build: .
-    environment:
-      - DEBUG=1
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:7777}
-      - REDIS_URL=redis://redis:6379/0
-      - MAILPACE_API_KEY=${MAILPACE_API_KEY:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@localhost}
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
-      - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
-      - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
-      - AXIOM_DATASET=${AXIOM_DATASET:-server}
-    volumes:
-      - .:/app
-      - /app/__pycache__
-
-    command: >
-      sh -c "
-        while true; do
-          python manage.py queue_current_hour
-          sleep 60
-        done
-      "
-    depends_on:
-      - redis
-      - postgres
-
   workers:
     build: .
     environment:
@@ -93,8 +45,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/squirrel_stats
       - AXIOM_API_TOKEN=${AXIOM_API_TOKEN:-}
       - AXIOM_DOMAIN=${AXIOM_DOMAIN:-api.axiom.co}
-      - AXIOM_SERVER_DATASET=${AXIOM_SERVER_DATASET:-server}
-      - AXIOM_QUEUE_DATASET=${AXIOM_QUEUE_DATASET:-queue-workers}
+      - AXIOM_DATASET=${AXIOM_DATASET:-server}
     volumes:
       - .:/app
       - /app/__pycache__

@@ -16,7 +16,7 @@ while true; do
     sleep 3600
 done &
 
-# Start current day scheduler (every hour - to catch new data throughout the day)
+# Start current day scheduler (every 5 minutes - to catch new data throughout the day)
 while true; do
     python manage.py queue_current_day
     sleep 300
