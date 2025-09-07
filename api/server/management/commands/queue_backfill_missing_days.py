@@ -16,6 +16,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from otel_config import get_tracer
 from server.models import DailyPageViewStats, Site
 
 try:
@@ -31,23 +32,32 @@ except Exception:  # pragma: no cover
 
 def _enqueue_or_run(site_identifier: str, start_date, end_date):
     """Enqueue or directly run daily aggregation based on RQ availability."""
-    if redis_conn and Queue:
-        q = Queue("aggregations", connection=redis_conn)
-        # Enqueue manage.py command through RQ (simple approach: call command in worker)
-        q.enqueue(
-            call_command,
-            "aggregate_daily_stats",
-            "--site",
-            site_identifier,
-            "--start",
-            start_date.isoformat(),
-            "--end",
-            end_date.isoformat(),
-        )
-    else:
-        call_command(
-            "aggregate_daily_stats", site=site_identifier, start=start_date.isoformat(), end=end_date.isoformat()
-        )
+    tracer = get_tracer()
+    with tracer.start_as_current_span("enqueue_backfill_daily_aggregation") as span:
+        span.set_attribute("site.identifier", site_identifier)
+        span.set_attribute("aggregation.start", start_date.isoformat())
+        span.set_attribute("aggregation.end", end_date.isoformat())
+        span.set_attribute("aggregation.days_count", (end_date - start_date).days + 1)
+
+        if redis_conn and Queue:
+            span.set_attribute("execution.mode", "enqueued")
+            q = Queue("aggregations", connection=redis_conn)
+            # Enqueue manage.py command through RQ (simple approach: call command in worker)
+            q.enqueue(
+                call_command,
+                "aggregate_daily_stats",
+                "--site",
+                site_identifier,
+                "--start",
+                start_date.isoformat(),
+                "--end",
+                end_date.isoformat(),
+            )
+        else:
+            span.set_attribute("execution.mode", "direct")
+            call_command(
+                "aggregate_daily_stats", site=site_identifier, start=start_date.isoformat(), end=end_date.isoformat()
+            )
 
 
 class Command(BaseCommand):
@@ -62,44 +72,57 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        days_to_check = options["days"]
-        now = timezone.now()
-        end_date = now.date()
-        start_date = end_date - timedelta(days=days_to_check)
+        tracer = get_tracer()
+        with tracer.start_as_current_span("queue_backfill_missing_days_command") as span:
+            days_to_check = options["days"]
+            now = timezone.now()
+            end_date = now.date()
+            start_date = end_date - timedelta(days=days_to_check)
 
-        total_queued = 0
+            span.set_attribute("command.days_to_check", days_to_check)
+            span.set_attribute("command.start_date", start_date.isoformat())
+            span.set_attribute("command.end_date", end_date.isoformat())
 
-        for site in Site.objects.all():
-            # Find existing daily stats for this site in the date range
-            existing_days = set(
-                DailyPageViewStats.objects.filter(
-                    site=site,
-                    day_bucket__gte=start_date,
-                    day_bucket__lte=end_date,
-                ).values_list("day_bucket", flat=True)
-            )
+            sites = Site.objects.all()
+            site_count = sites.count()
+            span.set_attribute("command.sites_count", site_count)
 
-            # Generate all days in the range and find missing ones
-            current_date = start_date
-            missing_days = []
+            total_queued = 0
 
-            while current_date <= end_date:
-                if current_date not in existing_days:
-                    missing_days.append(current_date)
-                current_date += timedelta(days=1)
+            for site in sites:
+                # Find existing daily stats for this site in the date range
+                existing_days = set(
+                    DailyPageViewStats.objects.filter(
+                        site=site,
+                        day_bucket__gte=start_date,
+                        day_bucket__lte=end_date,
+                    ).values_list("day_bucket", flat=True)
+                )
 
-            # Queue missing days for processing
-            if missing_days:
-                # Group consecutive days for efficient processing
-                day_ranges = self._group_consecutive_days(missing_days)
+                # Generate all days in the range and find missing ones
+                current_date = start_date
+                missing_days = []
 
-                for range_start, range_end in day_ranges:
-                    _enqueue_or_run(site.identifier, range_start, range_end)
-                    total_queued += (range_end - range_start).days + 1
+                while current_date <= end_date:
+                    if current_date not in existing_days:
+                        missing_days.append(current_date)
+                    current_date += timedelta(days=1)
 
-                self.stdout.write(f"Site {site.identifier}: queued {len(missing_days)} missing days")
+                # Queue missing days for processing
+                if missing_days:
+                    # Group consecutive days for efficient processing
+                    day_ranges = self._group_consecutive_days(missing_days)
 
-        self.stdout.write(self.style.SUCCESS(f"Queued/processed backfill for {total_queued} missing days"))
+                    for range_start, range_end in day_ranges:
+                        _enqueue_or_run(site.identifier, range_start, range_end)
+                        total_queued += (range_end - range_start).days + 1
+
+                    span.set_attribute(f"site.{site.identifier}.missing_days", len(missing_days))
+                    self.stdout.write(f"Site {site.identifier}: queued {len(missing_days)} missing days")
+
+            span.set_attribute("command.total_queued", total_queued)
+
+            self.stdout.write(self.style.SUCCESS(f"Queued/processed backfill for {total_queued} missing days"))
 
     def _group_consecutive_days(self, days):
         """
