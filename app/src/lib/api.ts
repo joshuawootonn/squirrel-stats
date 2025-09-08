@@ -206,6 +206,35 @@ export async function createSite(name: string): Promise<Site> {
   return response.json();
 }
 
+export async function updateSite(id: string, name: string): Promise<Site> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/sites/${id}/`, {
+    method: "PUT",
+    body: JSON.stringify({ name: name.trim() }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function deleteSite(id: string): Promise<void> {
+  const response = await fetchWithCredentials(`${API_BASE_URL}/sites/${id}/`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(
+      errorData.error || `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+}
+
 /**
  * Fetch hourly pageview data for charts
  */

@@ -1,33 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { createSite, fetchSites } from "@/lib/api";
+import {
+  createSite,
+  deleteSite,
+  fetchSites,
+  Site,
+  updateSite,
+} from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
 
+const queryKey = ["sites"];
+
+/**
+ * Hook for fetching sites
+ */
 export function useSites() {
-  const { isAuthenticated } = useAuth();
-  const queryClient = useQueryClient();
-
-  // Fetch sites using React Query
   const sitesQuery = useQuery({
-    queryKey: ["sites"],
+    queryKey: queryKey,
     queryFn: fetchSites,
-    enabled: false, // We'll enable it manually when authenticated
-  });
-
-  // Auto-fetch when authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      sitesQuery.refetch();
-    }
-  }, [isAuthenticated, sitesQuery]);
-
-  // Create site mutation
-  const createSiteMutation = useMutation({
-    mutationFn: createSite,
-    onSuccess: () => {
-      // Invalidate and refetch sites
-      queryClient.invalidateQueries({ queryKey: ["sites"] });
-    },
   });
 
   return {
@@ -35,8 +25,99 @@ export function useSites() {
     isLoading: sitesQuery.isLoading,
     error: sitesQuery.error,
     refetch: sitesQuery.refetch,
+  };
+}
+
+/**
+ * Hook for creating a new site
+ */
+export function useSiteCreate({
+  onError,
+  onSuccess,
+}: {
+  onError?: (error: Error) => void;
+  onSuccess?: () => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const createSiteMutation = useMutation({
+    mutationFn: createSite,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey });
+      onSuccess?.();
+    },
+    onError: (error) => {
+      onError?.(error);
+    },
+  });
+
+  return {
     createSite: createSiteMutation.mutate,
+    createSiteAsync: createSiteMutation.mutateAsync,
     isCreating: createSiteMutation.isPending,
-    createError: createSiteMutation.error,
+    error: createSiteMutation.error,
+  };
+}
+
+/**
+ * Hook for updating an existing site
+ */
+export function useSiteUpdate({
+  onError,
+  onSuccess,
+}: {
+  onError?: (error: Error) => void;
+  onSuccess?: (data: Site) => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const updateSiteMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      updateSite(id, name),
+    onSuccess: (data: Site) => {
+      queryClient.invalidateQueries({ queryKey: queryKey });
+      onSuccess?.(data);
+    },
+    onError: (error) => {
+      onError?.(error);
+    },
+  });
+
+  return {
+    updateSite: updateSiteMutation.mutate,
+    updateSiteAsync: updateSiteMutation.mutateAsync,
+    isUpdating: updateSiteMutation.isPending,
+    error: updateSiteMutation.error,
+  };
+}
+
+/**
+ * Hook for deleting a site
+ */
+export function useSiteDelete({
+  onError,
+  onSuccess,
+}: {
+  onError?: (error: Error) => void;
+  onSuccess?: () => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const deleteSiteMutation = useMutation({
+    mutationFn: deleteSite,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKey });
+      onSuccess?.();
+    },
+    onError: (error) => {
+      onError?.(error);
+    },
+  });
+
+  return {
+    deleteSite: deleteSiteMutation.mutate,
+    deleteSiteAsync: deleteSiteMutation.mutateAsync,
+    isDeleting: deleteSiteMutation.isPending,
+    error: deleteSiteMutation.error,
   };
 }

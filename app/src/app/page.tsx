@@ -4,37 +4,19 @@ import { useState } from "react";
 import { useSites } from "@/hooks/useSites";
 import { useAuth } from "@/components/AuthProvider";
 import { LandingPage } from "@/components/LandingPage";
-import { Popover } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { HourlyChart } from "@/components/HourlyChart";
+import { CreateSiteForm } from "@/components/CreateSiteForm";
+import { DeleteSiteButton } from "@/components/DeleteSiteButton";
+import { UpdateSiteForm } from "@/components/UpdateSiteForm";
 import type { Site } from "@/lib/api";
 
 export default function Home() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [newSiteName, setNewSiteName] = useState("");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
-  const {
-    sites,
-    isLoading,
-    error,
-    refetch,
-    createSite,
-    isCreating,
-    createError,
-  } = useSites();
+  const { sites, isLoading, error, refetch } = useSites();
 
-  const handleCreateSite = (e: React.FormEvent, close: () => void) => {
-    e.preventDefault();
-    if (!newSiteName.trim()) return;
-    createSite(newSiteName.trim(), {
-      onSuccess: () => {
-        setNewSiteName("");
-        close();
-      },
-    } as any);
-  };
-
-  // Show loading while checking authentication
+  // Show loading while checking
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -54,9 +36,9 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="space-y-8">
-        {(error || createError) && (
+        {error && (
           <div className="bg-red-50 border-[1.5px] border-red-200 text-red-700 px-4 py-3">
-            <strong>Error:</strong> {error?.message || createError?.message}
+            <strong>Error:</strong> {error.message}
           </div>
         )}
 
@@ -72,47 +54,7 @@ export default function Home() {
               >
                 <Button.Text>Refresh</Button.Text>
               </Button.Root>
-              <Popover.Root>
-                <Popover.Trigger>Create</Popover.Trigger>
-                <Popover.Portal>
-                  <Popover.Positioner sideOffset={8}>
-                    <Popover.Popup className="border-[1.5px] border-gray-300 bg-white p-4 shadow w-80">
-                      <Popover.Title className="font-medium mb-2">
-                        Create New Site
-                      </Popover.Title>
-                      <Popover.Description className="text-sm text-gray-600 mb-3">
-                        Enter a name for your site.
-                      </Popover.Description>
-                      <Popover.Context>
-                        {(context: any) => (
-                          <form
-                            onSubmit={(e) =>
-                              handleCreateSite(e, () => context.close?.())
-                            }
-                            className="flex gap-2"
-                          >
-                            <input
-                              type="text"
-                              value={newSiteName}
-                              onChange={(e) => setNewSiteName(e.target.value)}
-                              placeholder="Enter site name"
-                              className="flex-1 px-3 py-2 border-[1.5px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent h-10"
-                              disabled={isCreating}
-                            />
-                            <Button.Root
-                              type="submit"
-                              disabled={!newSiteName.trim()}
-                              loading={isCreating}
-                            >
-                              <Button.Text>Create</Button.Text>
-                            </Button.Root>
-                          </form>
-                        )}
-                      </Popover.Context>
-                    </Popover.Popup>
-                  </Popover.Positioner>
-                </Popover.Portal>
-              </Popover.Root>
+              <CreateSiteForm />
             </div>
           </div>
 
@@ -139,29 +81,34 @@ export default function Home() {
                         ? "border-black bg-gray-50"
                         : "border-gray-300 hover:border-gray-400"
                     }`}
-                    onClick={() =>
+                    onClick={(e) => {
+                      if (e.isDefaultPrevented()) {
+                        return;
+                      }
                       setSelectedSite(
                         selectedSite?.id === site.id ? null : site
-                      )
-                    }
+                      );
+                    }}
                   >
                     <div className="flex flex-row gap-1 justify-between items-center">
                       <h3 className="font-semibold text-lg">
                         {site.name} ({site.identifier})
                       </h3>
                       <div className="flex items-center gap-4">
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium">Page Views:</span>{" "}
-                          {site.pageview_count}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium">Created:</span>{" "}
-                          {new Date(site.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {selectedSite?.id === site.id
-                            ? "Click to hide analytics"
-                            : "Click to view analytics"}
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <UpdateSiteForm site={site} />
+                          <DeleteSiteButton
+                            site={site}
+                            onDeleteComplete={() => {
+                              // Clear selected site if it was the one being deleted
+                              if (selectedSite?.id === site.id) {
+                                setSelectedSite(null);
+                              }
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
