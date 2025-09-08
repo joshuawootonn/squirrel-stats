@@ -37,7 +37,7 @@ export function Header() {
             variant="secondary"
             className="h-10 px-4"
           >
-            <Button.Text>Sign Out</Button.Text>
+            Sign Out
           </Button.Root>
         </div>
       )}

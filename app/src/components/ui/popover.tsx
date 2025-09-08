@@ -78,7 +78,7 @@ function Trigger(props: ButtonProps) {
           size={size}
           className={className}
         >
-          <Button.Text>{children}</Button.Text>
+          {children}
         </Button.Root>
       )}
     />

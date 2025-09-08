@@ -101,7 +101,7 @@ export function AnalyticsChart({ site, className }: AnalyticsChartProps) {
             <p className="text-sm mt-1">{error.message}</p>
           </div>
           <Button.Root onClick={refetch} variant="outline" size="sm">
-            <Button.Text>Retry</Button.Text>
+            Retry
           </Button.Root>
         </div>
       </div>
@@ -132,7 +132,7 @@ export function AnalyticsChart({ site, className }: AnalyticsChartProps) {
             size="sm"
             loading={isLoading}
           >
-            <Button.Text>Refresh</Button.Text>
+            Refresh
           </Button.Root>
         </div>
       </div>
@@ -149,7 +149,7 @@ export function AnalyticsChart({ site, className }: AnalyticsChartProps) {
               onClick={() => handleRangeChange(option.value)}
               disabled={isLoading}
             >
-              <Button.Text>{option.label}</Button.Text>
+              {option.label}
             </Button.Root>
           ))}
         </Button.Group>

@@ -48,7 +48,7 @@ export function DeleteSiteButton({
         size="sm"
         className="text-red-600 hover:text-red-700 hover:bg-red-50"
       >
-        <Button.Text>{isDeleting ? "Deleting..." : "Delete"}</Button.Text>
+        {isDeleting ? "Deleting..." : "Delete"}
       </Button.Root>
 
       {/* Confirmation Modal */}
@@ -74,7 +74,7 @@ export function DeleteSiteButton({
                 variant="secondary"
                 disabled={isDeleting}
               >
-                <Button.Text>Cancel</Button.Text>
+                Cancel
               </Button.Root>
               <Button.Root
                 onClick={handleConfirmDelete}
@@ -82,9 +82,7 @@ export function DeleteSiteButton({
                 loading={isDeleting}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
-                <Button.Text>
-                  {isDeleting ? "Deleting..." : "Delete Site"}
-                </Button.Text>
+                {isDeleting ? "Deleting..." : "Delete Site"}
               </Button.Root>
             </div>
           </div>

@@ -52,7 +52,7 @@ export default function Home() {
                 variant="secondary"
                 loading={isLoading}
               >
-                <Button.Text>Refresh</Button.Text>
+                Refresh
               </Button.Root>
               <CreateSiteForm />
             </div>

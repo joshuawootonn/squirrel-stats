@@ -78,9 +78,7 @@ export function UpdateSiteForm({ site }: UpdateSiteFormProps) {
                       }
                       loading={isUpdating}
                     >
-                      <Button.Text>
-                        {isUpdating ? "Updating..." : "Update"}
-                      </Button.Text>
+                      {isUpdating ? "Updating..." : "Update"}
                     </Button.Root>
                   </form>
                 );

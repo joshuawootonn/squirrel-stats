@@ -67,7 +67,7 @@ export function CreateSiteForm() {
                       disabled={!newSiteName.trim() || isCreating}
                       loading={isCreating}
                     >
-                      <Button.Text>Create</Button.Text>
+                      Create
                     </Button.Root>
                   </form>
                 );
