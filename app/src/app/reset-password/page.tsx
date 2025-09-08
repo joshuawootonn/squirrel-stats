@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resetPassword } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function ResetPasswordForm() {
   const [newPassword, setNewPassword] = useState("");
@@ -62,7 +63,7 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex items-center justify-center ">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -73,64 +74,51 @@ function ResetPasswordForm() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="new-password" className="sr-only">
-                New Password
-              </label>
-              <input
+          <div className="space-y-4">
+            <Input.Group>
+              <Input.Label htmlFor="new-password">New Password</Input.Label>
+              <Input.Root
                 id="new-password"
                 name="new-password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="New password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                disabled={isLoading}
               />
-            </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
+            </Input.Group>
+            <Input.Group>
+              <Input.Label htmlFor="confirm-password">
                 Confirm Password
-              </label>
-              <input
+              </Input.Label>
+              <Input.Root
                 id="confirm-password"
                 name="confirm-password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
               />
-            </div>
+            </Input.Group>
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
-          )}
+          {error && <Input.Error>{error}</Input.Error>}
 
           {message && (
             <div className="text-green-600 text-sm text-center">{message}</div>
           )}
 
           <div>
-            <Button.Root
-              type="submit"
-              disabled={isLoading || !uid || !token}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
+            <Button.Root type="submit" disabled={isLoading || !uid || !token}>
               {isLoading ? "Resetting..." : "Reset password"}
             </Button.Root>
           </div>
 
           <div className="text-center">
-            <Link
-              href="/login"
-              className="text-sm text-indigo-600 hover:text-indigo-500"
-            >
-              Back to sign in
-            </Link>
+            <Link href="/login">Back to sign in</Link>
           </div>
         </form>
       </div>
