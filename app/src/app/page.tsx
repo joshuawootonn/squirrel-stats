@@ -57,8 +57,7 @@ export default function Home() {
 
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin h-8 w-8 border-b-2 border-black"></div>
-              <p className="mt-2 text-gray-600">Loading sites...</p>
+              <div className="inline-block animate-spin">Loading...</div>
             </div>
           ) : sites.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 border-[1.5px] border-dashed border-gray-300">
