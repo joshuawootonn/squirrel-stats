@@ -20,10 +20,7 @@ export default function Home() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin h-8 w-8 border-b-2 border-black"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
+        <div className="inline-block animate-spin">Loading...</div>
       </div>
     );
   }

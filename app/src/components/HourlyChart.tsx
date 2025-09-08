@@ -160,7 +160,6 @@ export function AnalyticsChart({ site, className }: AnalyticsChartProps) {
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="inline-block animate-spin h-8 w-8 border-b-2 border-black mb-2"></div>
               <p className="text-sm text-gray-600">Loading chart data...</p>
             </div>
           </div>
