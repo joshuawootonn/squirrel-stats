@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { useSiteCreate } from "@/hooks/useSites";
 import { Popover } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function CreateSiteForm() {
   const [newSiteName, setNewSiteName] = useState("");
@@ -54,12 +55,11 @@ export function CreateSiteForm() {
                     onSubmit={handleCreateSite}
                     className="flex flex-col gap-2"
                   >
-                    <input
+                    <Input.Root
                       type="text"
                       value={newSiteName}
                       onChange={(e) => setNewSiteName(e.target.value)}
                       placeholder="Enter site name"
-                      className="flex-1 px-3 py-2 border-[1.5px] border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent h-10"
                       disabled={isCreating}
                     />
                     <Button.Root

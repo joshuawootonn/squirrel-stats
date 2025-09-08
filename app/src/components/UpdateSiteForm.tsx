@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { useSiteUpdate } from "@/hooks/useSites";
 import { Popover } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Site } from "@/lib/api";
 
 interface UpdateSiteFormProps {
@@ -61,12 +62,11 @@ export function UpdateSiteForm({ site }: UpdateSiteFormProps) {
                     onSubmit={handleUpdateSite}
                     className="flex flex-col gap-2"
                   >
-                    <input
+                    <Input.Root
                       type="text"
                       value={siteName}
                       onChange={(e) => setSiteName(e.target.value)}
                       placeholder="Enter site name"
-                      className="flex-1 px-3 py-2 border-[1.5px] border-gray-300 focus:outline-none focus:ring-2 focus:border-transparent h-10"
                       disabled={isUpdating}
                     />
                     <Button.Root
