@@ -4,6 +4,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { logout } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Header() {
   const { user, isAuthenticated, setUser } = useAuth();
@@ -22,7 +23,14 @@ export function Header() {
   return (
     <header className="flex justify-between items-center p-4 gap-4 h-16 border-b border-gray-200">
       <div className="flex items-center">
-        <Link href="/">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/leaf-logo.svg"
+            alt="Squirrel Stats Logo"
+            width={24}
+            height={24}
+            className="w-15 h-15 -rotate-45 translate-x-3"
+          />
           <h1 className="text-xl font-bold">Squirrel Stats</h1>
         </Link>
       </div>
